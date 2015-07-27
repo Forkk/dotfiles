@@ -51,10 +51,6 @@ myBaseConfig = defaultConfig
     , handleEventHook = docksEventHook
     }
 
---myStatusBar cfg =
---    statusBar "taffybar" taffybarPP toggleBarKey cfg
-   -- statusBar "xmobar ~/.xmonad/xmobar.cfg" xmobarPP toggleBarKey cfg
-
 startup = do
     spawn "killall taffybar-linux-x86_64"
     spawn "taffybar"
@@ -116,10 +112,8 @@ myKeys = concat [
     , ("M-l"      , spawn "lock-screen")
     , ("M-C-f"    , spawn "firefox")
     , ("M-C-e"    , spawn "emacs --no-desktop")
-    , ("M-C-S-e"  , spawn "emacsclient -c")
     , ("M-C-q"    , spawn "quasselclient")
     , ("M-C-t"    , spawn "ts3client")
-    , ("M-C-r"    , spawn "transmission-qt")
 
     , ("M-q", restart "xmonad" True)
     , ("M-C-S-q", quitPrompt)
@@ -127,29 +121,20 @@ myKeys = concat [
 
     -- Misc
     , ("M-<Esc>"  , kill)
-    --, ("M-f"      , spawn "tflux") -- Toggle xflux
     , ("M-c"      , spawn "toggle-cursor")
     , ("M-g"      , spawn "toggle-compton")
-
-    -- IBus
-    --, ("M-/"      , spawn "toggle-compose")
 
     -- Hacks
     , ("M-S-j", setWMName "LG3D")
     , ("M-S-k", setWMName "XMonad")
 
-    -- Shortcuts
-
     -- Enable/disable 2nd montior.
-    , ("M-S-C-<F2>", spawn "monitor2 on")
     , ("M-S-C-<F1>", spawn "monitor2 off")
+    , ("M-S-C-<F2>", spawn "monitor2 on")
     ]
     -- Switching Workspaces
     , [("M-S-" ++ show i,  windows $ W.shift wspc) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
     , [("M-C-" ++ show i, (windows $ W.shift wspc) >> (windows $ viewOnScreen 0 wspc)) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
-{-
-    , [("M-" ++ show i,    toggleOrView wspc) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
--}
     -- Switching Screens
     , [("M-<F" ++ show i ++ ">",   viewScreen $ P (i-1)) | i <- [1..3 :: Int]]
     , [("M-S-<F" ++ show i ++ ">", sendToScreen $ P (i-1)) | i <- [1..3 :: Int]]
