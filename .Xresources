@@ -1,0 +1,25 @@
+! URxvt crap
+
+URxvt*font: xft:DejaVu Sans Mono:size=12
+! Fade the text by the given percentage when focus is lost; option -fade.
+! URxvt*fading: 5
+URxvt*scrollBar: false
+! Specifies the terminal type name to be set in the TERM environment variable; option -tn.
+! URxvt*termName: termname
+URxvt*perl-ext-common: default
+! Turn on/off ISO 14755 (default enabled).
+URxvt*iso14755: false
+! Turn on/off ISO 14755 5.2 mode (default enabled).
+URxvt*iso14755_52: false
+
+
+! XTerm crap...
+
+UXTerm*faceName: DejaVu Sans Mono
+UXTerm*faceSize: 12
+! Double click to select whole URLs! Thanks for this, random internet person! :D
+UXTerm*charClass: 33:48,36-47:48,58-59:48,61:48,63-64:48,95:48,126:48
+UXTerm*termName: xterm-256color
+UXTerm*locale: true
+UXTerm*selectToClipboard: true
+UXTerm*bellIsUrgent: true
