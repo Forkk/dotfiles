@@ -9,19 +9,30 @@
 
 (desktop-save-mode 1)
 
-;; (evil-mode 1)
-;; (global-evil-surround-mode 1)
-
 (global-undo-tree-mode 1)
 
 (setq-default fill-column 80)
 
-(yas-global-mode 1)
-(add-hook 'term-mode-hook (lambda() (setq yas-dont-activate t)))
+;; (yas-global-mode 1)
+;; (add-hook 'term-mode-hook (lambda() (setq yas-dont-activate t)))
 
 (global-git-gutter+-mode 1)
 
 (latex-preview-pane-enable)
+
+
+;;;; Evil Mode
+
+(evil-mode 1)
+(global-evil-surround-mode 1)
+
+;; Mode specific settings for Evil mode.
+(evil-set-initial-state 'dired-mode 'emacs)
+(evil-set-initial-state 'term-mode 'emacs)
+(evil-set-initial-state 'shell-mode 'emacs)
+(evil-set-initial-state 'help-mode 'emacs)
+(evil-set-initial-state 'flycheck-error-list-mode 'emacs)
+
 
 ;;;; git-gutter+
 
@@ -129,30 +140,6 @@
 
 (eval-after-load 'flycheck
   '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
-
-
-;; ;;;; Evil Mode
-
-;; ;; Use C-b to switch buffers quickly.
-;; (global-unset-key (kbd "C-b"))
-;; (global-set-key (kbd "C-b") 'switch-to-buffer)
-;; (define-key evil-normal-state-map (kbd "C-b") 'switch-to-buffer)
-
-;; ;; Map ; to :
-;; (define-key evil-normal-state-map ";" 'evil-ex)
-;; (define-key evil-visual-state-map ";" 'evil-ex)
-
-;; ;;;; Multiple Cursors Options
-;; ;; In visual mode, use "g c" to put cursors on each line.
-;; (define-key evil-normal-state-map (kbd "g c") 'mc/edit-lines)
-;; (define-key evil-visual-state-map (kbd "g c") 'mc/edit-lines)
-
-;; ;; Mode specific settings for Evil mode.
-;; (evil-set-initial-state 'dired-mode 'emacs)
-;; (evil-set-initial-state 'term-mode 'emacs)
-;; (evil-set-initial-state 'shell-mode 'emacs)
-;; (evil-set-initial-state 'help-mode 'emacs)
-;; (evil-set-initial-state 'flycheck-error-list-mode 'emacs)
 
 
 ;;;; Customize
