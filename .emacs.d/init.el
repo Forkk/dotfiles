@@ -1,4 +1,3 @@
-;;(require 'cask "/run/current-system/sw/share/emacs/site-lisp/cask.el")
 (require 'cask)
 (cask-initialize)
 
@@ -26,13 +25,6 @@
 
 ;;;; git-gutter+
 
-;; (global-set-key (kbd "C-c C-s C-s") 'git-gutter+-stage-hunks)
-;; (global-set-key (kbd "C-c C-s C-S-s") 'git-gutter+-revert-hunks)
-;; (global-set-key (kbd "C-c C-s C-e") 'git-gutter+-next-hunk)
-;; (global-set-key (kbd "C-c C-s C-w") 'git-gutter+-previous-hunk)
-;; (global-set-key (kbd "C-c C-s C-b") 'git-gutter+-stage-whole-buffer)
-;; (global-set-key (kbd "C-c C-s C-c") 'git-gutter+-commit)
-
 (eval-after-load 'git-gutter+
   '(progn
      ;;; Jump between hunks
@@ -41,21 +33,30 @@
 
      ;;; Act on hunks
      (define-key git-gutter+-mode-map (kbd "C-x v =") 'git-gutter+-show-hunk)
-     ;; (define-key git-gutter+-mode-map (kbd "C-x r") 'git-gutter+-revert-hunks)
+     (define-key git-gutter+-mode-map (kbd "C-x R") 'git-gutter+-revert-hunks)
      ;; Stage hunk at point.
      ;; If region is active, stage all hunk lines within the region.
      (define-key git-gutter+-mode-map (kbd "C-x t") 'git-gutter+-stage-hunks)
      (define-key git-gutter+-mode-map (kbd "C-x c") 'git-gutter+-commit)
      (define-key git-gutter+-mode-map (kbd "C-x C") 'git-gutter+-stage-and-commit)
      (define-key git-gutter+-mode-map (kbd "C-x C-y") 'git-gutter+-stage-and-commit-whole-buffer)
-     ;; (define-key git-gutter+-mode-map (kbd "C-x U") 'git-gutter+-unstage-whole-buffer)
+     (define-key git-gutter+-mode-map (kbd "C-x U") 'git-gutter+-unstage-whole-buffer)
      ))
-
-;; (global-set-key (kbd "C-c C-s C-") ')
 
 
 ;;;; Haskell mode
 (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+
+;; Switch between Literate Haskell and Markdown
+(add-hook 'literate-haskell-mode-hook
+	  (lambda ()
+	    (global-set-key (kbd "M-\\") 'markdown-mode)))
+
+(add-hook 'markdown-mode-hook
+	  (lambda ()
+	    (global-set-key (kbd "M-\\") 'literate-haskell-mode)))
+
 
 ;;;; Scala
 
@@ -111,6 +112,7 @@
 	    ;; C-x is the prefix command, rather than C-c
 	    (term-set-escape-char ?\C-x)))
 
+
 ;; Escape to get out of things, but don't close windows.
 (defadvice keyboard-escape-quit (around my-keyboard-escape-quit activate)
   (let (orig-one-window-p)
@@ -122,25 +124,11 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
-
-;;;; Switch between Literate Haskell and Markdown
-
-(add-hook 'literate-haskell-mode-hook
-	  (lambda ()
-	    (global-set-key (kbd "M-\\") 'markdown-mode)))
-
-(add-hook 'markdown-mode-hook
-	  (lambda ()
-	    (global-set-key (kbd "M-\\") 'literate-haskell-mode)))
 
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
 (eval-after-load 'flycheck
   '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
-
-;;(eval-after-load 'flycheck
-;;  '(require 'flycheck-hdevtools))
 
 
 ;; ;;;; Evil Mode
