@@ -34,7 +34,7 @@
 (evil-set-initial-state 'flycheck-error-list-mode 'emacs)
 
 
-;;;; git-gutter+
+;;;; Git plugins (git-gutter+ and magit)
 
 (eval-after-load 'git-gutter+
   '(progn
@@ -53,6 +53,8 @@
      (define-key git-gutter+-mode-map (kbd "C-x C-y") 'git-gutter+-stage-and-commit-whole-buffer)
      (define-key git-gutter+-mode-map (kbd "C-x U") 'git-gutter+-unstage-whole-buffer)
      ))
+
+(setq magit-last-seen-setup-instructions "1.4.0")
 
 
 ;;;; Haskell mode
