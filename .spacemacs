@@ -19,11 +19,20 @@
      ;; ----------------------------------------------------------------
      ;; auto-completion
      ;; better-defaults
-     emacs-lisp
      git
+     (git :variables
+          git-enable-github-support t
+          git-gutter-use-fringe t)
+     git-gutter-fringe
      markdown
+     haskell
+     latex
+     nixos
+     emacs-lisp
+     rust
      org
      (shell :variables
+            shell-default-shell 'eshell
             shell-default-height 30
             shell-default-position 'bottom)
      syntax-checking
@@ -33,10 +42,7 @@
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages then consider to create a layer, you can also put the
    ;; configuration in `dotspacemacs/config'.
-   dotspacemacs-additional-packages
-   '(
-     haskell-mode
-     )
+   dotspacemacs-additional-packages '()
    ;; A list of packages and/or extensions that will not be install and loaded.
    dotspacemacs-excluded-packages '()
    ;; If non-nil spacemacs will delete any orphan packages, i.e. packages that
@@ -71,11 +77,11 @@ before layers configuration."
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(
                          spacemacs-dark
+                         spacemacs-light
                          solarized-light
                          solarized-dark
-                         spacemacs-light
-                         leuven
                          monokai
+                         leuven
                          zenburn)
    ;; If non nil the cursor color matches the state color.
    dotspacemacs-colorize-cursor-according-to-state t
@@ -113,7 +119,7 @@ before layers configuration."
    dotspacemacs-enable-paste-micro-state nil
    ;; Guide-key delay in seconds. The Guide-key is the popup buffer listing
    ;; the commands bound to the current keystrokes.
-   dotspacemacs-guide-key-delay 0.4
+   dotspacemacs-guide-key-delay 0.1
    ;; If non nil a progress bar is displayed when spacemacs is loading. This
    ;; may increase the boot time on some systems and emacs builds, set it to
    ;; nil ;; to boost the loading time.
@@ -158,10 +164,35 @@ before layers configuration."
    dotspacemacs-default-package-repository nil
    )
   ;; User initialization goes here
-  (require 'nix-mode)
 
   ;; Projectile
   (setq projectile-switch-project-action 'projectile-dired)
+
+  ;; Haskell mode
+  (add-to-list 'exec-path "~/.cabal/bin")
+  ;; (setq shm-program-name (concat (getenv "HOME") "/.cabal/bin/structured-haskell-mode"))
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+  ;; Switch between Literate Haskell and Markdown
+  (add-hook 'literate-haskell-mode-hook
+            (lambda ()
+              (global-set-key (kbd "M-\\") 'markdown-mode)))
+  (add-hook 'markdown-mode-hook
+            (lambda ()
+              (global-set-key (kbd "M-\\") 'literate-haskell-mode)))
+
+  ;; Eshell mode
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (define-key eshell-mode-map
+                [remap eshell-pcomplete]
+                'helm-esh-pcomplete)))
+
+  ;; Org Mode
+  (setq org-directory "~/todo")
+  (setq org-mobile-directory "~/Dropbox/MobileOrg")
+  (setq org-agenda-files '("~/todo/"
+                           "~/todo/school/"))
+  (setq org-mobile-inbox-for-pull "~/todo/new.org")
   )
 
 (defun dotspacemacs/config ()
@@ -172,3 +203,25 @@ layers configuration."
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ahs-case-fold-search nil)
+ '(ahs-default-range (quote ahs-range-whole-buffer))
+ '(ahs-idle-interval 0.25)
+ '(ahs-idle-timer 0 t)
+ '(ahs-inhibit-face-list nil)
+ '(global-undo-tree-mode t)
+ '(ring-bell-function (quote ignore) t)
+ '(undo-tree-auto-save-history t)
+ '(undo-tree-history-directory-alist (quote ((".*" . "~/.emacs.d/.cache/undo-tree"))))
+ '(undo-tree-visualizer-diff t)
+ '(undo-tree-visualizer-timestamps t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
