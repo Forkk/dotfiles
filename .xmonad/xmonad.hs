@@ -112,6 +112,7 @@ myKeys = concat [
     , ("M-l"      , spawn "lock-screen")
     , ("M-C-f"    , spawn "firefox")
     , ("M-C-e"    , spawn "emacs --no-desktop")
+    , ("M-o"      , spawn "emacsclient -c")
     , ("M-C-q"    , spawn "quasselclient")
     , ("M-C-t"    , spawn "ts3client")
 

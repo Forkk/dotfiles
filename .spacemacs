@@ -75,10 +75,10 @@ before layers configuration."
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(
+                         spacemacs-light
+                         spacemacs-dark
                          tango
                          tango-dark
-                         spacemacs-dark
-                         spacemacs-light
                          solarized-light
                          solarized-dark
                          monokai
@@ -155,7 +155,7 @@ before layers configuration."
    ;; `current' or `nil'. Default is `all'
    dotspacemacs-highlight-delimiters 'all
    ;; If non nil advises quit functions to keep server open when quitting.
-   dotspacemacs-persistent-server nil
+   dotspacemacs-persistent-server t
    ;; List of search tool executable names. Spacemacs uses the first installed
    ;; tool of the list. Supported tools are `ag', `pt', `ack' and `grep'.
    dotspacemacs-search-tools '("ag" "pt" "ack" "grep")
@@ -165,6 +165,7 @@ before layers configuration."
    dotspacemacs-default-package-repository nil
    )
   ;; User initialization goes here
+
   (require 'nix-mode)
 
   ;; Projectile
@@ -201,6 +202,11 @@ before layers configuration."
   "Configuration function.
  This function is called at the very end of Spacemacs initialization after
 layers configuration."
+  ;; Don't kill every single emacs frame on my system when I press "SPC q q".
+  (evil-leader/set-key
+    "qq" 'spacemacs/frame-killer
+    "qA" 'spacemacs/prompt-kill-emacs
+    )
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
