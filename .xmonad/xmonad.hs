@@ -110,6 +110,7 @@ myKeys = concat [
     , ("M-t"      , spawn "urxvt")
     , ("M-v"      , spawn "pavucontrol")
     , ("M-l"      , spawn "lock-screen")
+    , ("M-i"      , spawn "chromium")
     , ("M-C-f"    , spawn "firefox")
     , ("M-C-e"    , spawn "emacs --no-desktop")
     , ("M-o"      , spawn "emacsclient -c")
