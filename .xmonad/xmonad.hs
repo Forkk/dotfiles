@@ -42,7 +42,7 @@ altMask = mod1Mask
 
 myBaseConfig = defaultConfig
     { modMask = modm
-    , terminal = "urxvt"
+    , terminal = "st"
     , workspaces = myWorkspaces
     , layoutHook = myLayout
     , keys = \c -> mkKeymap c myKeys `M.union` M.fromList workspaceKeys
@@ -107,7 +107,8 @@ myKeys = concat [
 
     -- Launch Programs
     , ("M-<Space>", spawn "dmenu_run -l 10")
-    , ("M-t"      , spawn "urxvt")
+    , ("M-t"      , spawn "st -e tmux")
+    , ("M-S-t"    , spawn "st")
     , ("M-v"      , spawn "pavucontrol")
     , ("M-l"      , spawn "lock-screen")
     , ("M-i"      , spawn "chromium")
