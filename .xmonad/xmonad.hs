@@ -13,6 +13,9 @@ import           XMonad.Layout
 import           XMonad.Layout.Fullscreen
 import           XMonad.Layout.NoBorders
 import           XMonad.Layout.PerWorkspace
+import           XMonad.Layout.TrackFloating
+import           XMonad.Layout.SimpleDecoration
+import           XMonad.Layout.Decoration
 import           XMonad.Layout.Tabbed
 import           XMonad.Operations
 import           XMonad.Prompt
@@ -49,9 +52,13 @@ myBaseConfig = defaultConfig
     , manageHook = myManageHook <+> manageDocks
     , startupHook = startup
     , handleEventHook = docksEventHook
+    , borderWidth = 3
+    , normalBorderColor = "#1f1f1f"
+    , focusedBorderColor = "#4f4f4f"
     }
 
 startup = do
+    spawn "feh --bg-fill ~/wallpaper/haskell.png"
     spawn "killall taffybar-linux-x86_64"
     spawn "taffybar"
 
@@ -59,90 +66,126 @@ startup = do
 myWorkspaces = ["1:Web", "2:Work", "3:IRC", "4", "5", "6", "7", "8", "9"]
 
 
+--------------- Theme ---------------
+
+myFontName = "xft:Source Code Pro:pixelsize=14"
+
+myTheme = defaultTheme
+  { activeColor         = "#2f2f2f"
+  , inactiveColor       = "#1f1f1f"
+  , urgentColor         = "#ffff00"
+  , activeBorderColor   = "#3f3f3f"
+  , inactiveBorderColor = "#1f1f1f"
+  , urgentBorderColor   = "##00ff00"
+  , activeTextColor     = "#f0f0f0"
+  , inactiveTextColor   = "#f0f0f0"
+  , urgentTextColor     = "#fff0f0"
+  , fontName            = myFontName
+  -- , fontName            = "-monospace-*-*-*-*-*-10-*-*-*-*-*-*-*"
+  , decoWidth           = 200
+  , decoHeight          = 20
+  , windowTitleAddons   = []
+  , windowTitleIcons    = []
+  }
+
+themedXPConfig = defaultXPConfig
+  { font = myFontName
+  , fgColor = "#f0f0f0"
+  , bgColor = "#1f1f1f"
+  , fgHLight = "#f0f0f0"
+  , bgHLight = "#2f2f2f"
+  , borderColor = "#f0f0f0"
+  , promptBorderWidth = 0
+  }
+
 --------------- Layout ---------------
 myLayout =
-      avoidStruts
-    . noBorders
-    . fullscreenFull
-    -- Full layout goes first in the Web workspace.
-    . onWorkspace "1:Web" (Full ||| lTabbed ||| lTall ||| mTall)
-    -- On the Work workspace, we use the tabbed layout first.
-    . onWorkspace "2:Work" (lTabbed ||| lTall ||| mTall ||| Full)
-    -- On the IRC workspace, we can use Tall, Mirror tall, tabbed, and full.
-    . onWorkspace "3:IRC" (lTall ||| mTall ||| lTabbed ||| Full)
-    -- Workspace 4 is sometimes used for games and videos, so I use the full layout first on there.
-    . onWorkspace "4" (Full ||| lTabbed ||| lTall ||| mTall)
-    $ (lTabbed ||| lTall ||| mTall ||| Full)
-    where lTall     = Tall 1 (3/100) (1/2)
-          mTall     = Mirror lTall
-          lTabbed   = simpleTabbed
+  id
+  . avoidStruts
+  . trackFloating
+  . noBorders
+  . fullscreenFull
+  -- Full layout goes first in the Web workspace.
+  . onWorkspace "1:Web" (Full ||| lTabbed ||| lTall ||| mTall)
+  -- On the Work workspace, we use the tabbed layout first.
+  . onWorkspace "2:Work" (lTabbed ||| lTall ||| mTall ||| Full)
+  -- On the IRC workspace, we can use Tall, Mirror tall, tabbed, and full.
+  . onWorkspace "3:IRC" (lTall ||| mTall ||| lTabbed ||| Full)
+  -- Workspace 4 is sometimes used for games and videos, so I use the full layout first on there.
+  . onWorkspace "4" (Full ||| lTabbed ||| lTall ||| mTall)
+  $ (lTabbed ||| lTall ||| mTall ||| Full)
+  where lTall     = Tall 1 (3/100) (1/2)
+        mTall     = Mirror lTall
+        lTabbed   = tabbedAlways shrinkText myTheme
+        -- lTabbed   = addTabsAlways shrinkText myTheme $ Tall 1 (5/100) (2/3)
 
 layoutsMod = id
 
 
 --------------- Keys ---------------
 myKeys = concat [
-    [ ("M-r", refresh)
+  [ ("M-r", refresh)
 
-    -- Layout Hotkeys
-    , ("M-<Return>", windows W.focusMaster)
-    , ("M-e",    windows W.focusDown      )
-    , ("M-w",    windows W.focusUp        )
+  -- Layout Hotkeys
+  , ("M-<Return>", windows W.focusMaster)
+  , ("M-e",    windows W.focusDown      )
+  , ("M-w",    windows W.focusUp        )
 
-    , ("M-S-<Return>", windows W.swapMaster)
-    , ("M-S-e",        windows W.swapDown  )
-    , ("M-S-w",        windows W.swapUp    )
+  , ("M-S-<Return>", windows W.swapMaster)
+  , ("M-S-e",        windows W.swapDown  )
+  , ("M-S-w",        windows W.swapUp    )
 
-    , ("M-z",    sendMessage FirstLayout)
-    , ("M-x",    sendMessage NextLayout)
+  , ("M-z",    sendMessage FirstLayout)
+  , ("M-x",    sendMessage NextLayout)
 
-    , ("M-p",    withFocused $ windows . W.sink)
+  , ("M-p",    withFocused $ windows . W.sink)
 
-    , ("M-b",    sendMessage $ ToggleStruts)
+  , ("M-b",    sendMessage $ ToggleStruts)
 
 
-    -- Controls (Volume / Brightness)
-    , ("<XF86MonBrightnessUp>",     spawn "xbacklight -inc 5")
-    , ("<XF86MonBrightnessDown>",   spawn "xbacklight -dec 5")
+  -- Controls (Volume / Brightness)
+  , ("<XF86MonBrightnessUp>",     spawn "xbacklight -inc 5")
+  , ("<XF86MonBrightnessDown>",   spawn "xbacklight -dec 5")
 
-    -- Launch Programs
-    , ("M-<Space>", spawn "dmenu_run -l 10")
-    , ("M-t"      , spawn "st -e tmux")
-    , ("M-S-t"    , spawn "st")
-    , ("M-v"      , spawn "pavucontrol")
-    , ("M-l"      , spawn "lock-screen")
-    , ("M-i"      , spawn "chromium")
-    , ("M-C-f"    , spawn "firefox")
-    , ("M-C-e"    , spawn "emacs --no-desktop")
-    , ("M-o"      , spawn "emacsclient -c")
-    , ("M-C-q"    , spawn "quasselclient")
-    , ("M-C-t"    , spawn "ts3client")
+  -- Launch Programs
+  , ("M-<Space>", spawn "dmenu_run -l 10")
+  , ("M-t"      , spawn "st -e tmux")
+  , ("M-S-t"    , spawn "st")
+  , ("M-v"      , spawn "pavucontrol")
+  , ("M-l"      , spawn "lock-screen -c 1f1f1f")
+  , ("M-i"      , spawn "chromium")
+  , ("M-C-f"    , spawn "firefox")
+  , ("M-C-e"    , spawn "emacs --no-desktop")
+  , ("M-o"      , spawn "emacsclient -c")
+  , ("M-C-q"    , spawn "quasselclient")
+  , ("M-C-t"    , spawn "ts3client")
 
-    , ("M-q", restart "xmonad" True)
-    , ("M-C-S-q", quitPrompt)
-    , ("M-C-S-o", restart "temp-openbox" True)
+  , ("M-q", restart "xmonad" True)
+  , ("M-S-q", restart "xmonad" False)
+  , ("M-C-S-q", quitPrompt)
+  , ("M-C-S-o", restart "temp-openbox" True)
 
-    -- Misc
-    , ("M-<Esc>"  , kill)
-    , ("M-c"      , spawn "toggle-cursor")
-    , ("M-g"      , spawn "toggle-compton")
+  -- Misc
+  , ("M-<Esc>"  , kill)
+  , ("M-c"      , spawn "toggle-cursor")
+  , ("M-g"      , spawn "toggle-compton")
 
-    -- Hacks
-    , ("M-S-j", setWMName "LG3D")
-    , ("M-S-k", setWMName "XMonad")
+  -- Hacks
+  , ("M-S-j", setWMName "LG3D")
+  , ("M-S-k", setWMName "XMonad")
 
-    -- Enable/disable 2nd montior.
-    , ("M-S-C-<F1>", spawn "monitor2 off")
-    , ("M-S-C-<F2>", spawn "monitor2 on")
-    ]
-    -- Switching Workspaces
-    , [("M-S-" ++ show i,  windows $ W.shift wspc) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
-    , [("M-C-" ++ show i, (windows $ W.shift wspc) >> (windows $ viewOnScreen 0 wspc)) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
-    -- Switching Screens
-    , [("M-<F" ++ show i ++ ">",   viewScreen $ P (i-1)) | i <- [1..3 :: Int]]
-    , [("M-S-<F" ++ show i ++ ">", sendToScreen $ P (i-1)) | i <- [1..3 :: Int]]
-    , [("M-C-<F" ++ show i ++ ">", sendToScreen (P (i-1)) >> viewScreen (P i)) | i <- [1..3 :: Int]]
-    ]
+  -- Enable/disable 2nd montior.
+  , ("M-S-C-<F1>", spawn "monitor2 off")
+  , ("M-S-C-<F2>", spawn "monitor2 on")
+  ]
+  -- Switching Workspaces
+  , [("M-S-" ++ show i,  windows $ W.shift wspc) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
+  , [("M-C-" ++ show i, (windows $ W.shift wspc) >> (windows $ viewOnScreen 0 wspc)) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
+  -- Switching Screens
+  , [("M-<F" ++ show i ++ ">",   viewScreen $ P (i-1)) | i <- [1..3 :: Int]]
+  , [("M-S-<F" ++ show i ++ ">", sendToScreen $ P (i-1)) | i <- [1..3 :: Int]]
+  , [("M-C-<F" ++ show i ++ ">", sendToScreen (P (i-1)) >> viewScreen (P i)) | i <- [1..3 :: Int]]
+  ]
 
 
 workspaceKeys =
@@ -192,7 +235,7 @@ onCurrentScreen f arg st = f cur arg st
 -- prompt.
 quitPrompt :: X ()
 quitPrompt = do
-    responseM <- inputPrompt defaultXPConfig "Please type \"quit\" and press enter to log out."
+    responseM <- inputPrompt themedXPConfig "Please type \"quit\" and press enter to log out."
     case responseM of
         Just "quit" ->
             io (exitWith ExitSuccess)
