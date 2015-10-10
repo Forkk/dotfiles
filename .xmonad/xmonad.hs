@@ -1,3 +1,8 @@
+import Control.Monad
+import Data.Maybe
+import System.Environment
+import System.FilePath
+
 import           XMonad
 
 import qualified Data.Map                       as M
@@ -35,7 +40,11 @@ import System.Taffybar.XMonadLog (taffybarPP)
 import System.Exit
 
 --------------- Config ---------------
-main = xmonad =<< cfg
+main = do
+  home <- getEnv "HOME"
+  path <- fromMaybe "" <$> lookupEnv "PATH"
+  setEnv "PATH" (path ++ ":" ++ (home </> "bin"))
+  xmonad =<< cfg
 
 -- Apply some transformations to the config
 cfg = return $ ewmh $ pagerHints myBaseConfig
@@ -58,9 +67,18 @@ myBaseConfig = defaultConfig
     }
 
 startup = do
-    spawn "feh --bg-fill ~/wallpaper/haskell.png"
-    spawn "killall taffybar-linux-x86_64"
-    spawn "taffybar"
+  spawn "compton-start"
+  mapM_ (\opts -> spawn ("xset " ++ opts)) xsetOpts
+  spawn "feh --bg-fill ~/wallpaper/haskell.png"
+  spawn "killall taffybar-linux-x86_64"
+  spawn "taffybar"
+  where
+    xsetOpts =
+      [ "-b" -- Disable bell.
+      , "-dpms" -- Don't turn off my screen.
+      , "s off" -- Disable screensaver.
+      , "r rate 200 42" -- Key repeat delay and rate.
+      ]
 
 --------------- Workspaces ---------------
 myWorkspaces = ["1:Web", "2:Work", "3:IRC", "4", "5", "6", "7", "8", "9"]
@@ -168,7 +186,7 @@ myKeys = concat [
   -- Misc
   , ("M-<Esc>"  , kill)
   , ("M-c"      , spawn "toggle-cursor")
-  , ("M-g"      , spawn "toggle-compton")
+  , ("M-g"      , spawn "compton-toggle")
 
   -- Hacks
   , ("M-S-j", setWMName "LG3D")
@@ -199,20 +217,35 @@ workspaceKeys =
 
 --------------- Manage Hook ---------------
 
-myManageHook = composeAll $
-    [ workspaceManageHook
+myManageHook = composeAll . concat $
+  [ [ workspaceManageHook ]
 
-    , (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat
+  , [ (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat ]
+
+  , [ className =? c --> doFloat | c <- floatClassMatches ]
+  , [ fmap (c `isInfixOf`) className --> doFloat | c <- floatClassContains ]
+
+  , [className =? "Friends" --> doFloat]
+    -- Handle Steam's nonsense.
+  , map (className =? "Steam" -->)
+    [ title =? "Friends" --> doFloat
+    , fmap ("Update News" `isInfixOf`) title --> doFloat
     ]
+  ]
+  where
+    -- Float windows with these classes.
+    floatClassMatches = ["Xmessage", "Gxmessage"]
+    -- Float windows whose class contains any of these strings.
+    floatClassContains = []
 
 -- Manage hooks for moving windows to their proper default workspaces.
 workspaceManageHook = composeOne
-    -- Quassel goes in the IRC workspace.
-    [ (propContains "quassel" className) -?> doShift "3:IRC"
+  -- Quassel goes in the IRC workspace.
+  [ (propContains "quassel" className) -?> doShift "3:IRC"
 
-    -- Firefox windows go in workspace 1.
-    , (className =? "Firefox") -?> doShift "1:Web"
-    ]
+    -- When running via X11-Forwarding from a machine in the CS labs at school, I want gnome-terminal to be on workspace 9.
+  , (className =? "Gnome-terminal" {-<&&> propContains "cs.trinity.edu" wM_CLIENT_MACHINE-}) -?> doShift "9"
+  ]
 
 -- A Query which returns true if the given property contains the given string.
 propContains :: String -> Query String -> Query Bool
