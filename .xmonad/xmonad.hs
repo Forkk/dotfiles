@@ -3,7 +3,7 @@ import Data.Maybe
 import System.Environment
 import System.FilePath
 
-import           XMonad
+import           XMonad hiding ((|||))
 
 import qualified Data.Map                       as M
 import Data.List
@@ -11,17 +11,24 @@ import           Graphics.X11.ExtraTypes.XF86
 
 import qualified XMonad.StackSet                as W
 
+import           XMonad.Layout.ComboP
 import           XMonad.Actions.CycleWS
 import           XMonad.Actions.OnScreen
 import           XMonad.Actions.PhysicalScreens
-import           XMonad.Layout
+import           XMonad.Layout                  hiding ((|||))
 import           XMonad.Layout.Fullscreen
 import           XMonad.Layout.NoBorders
 import           XMonad.Layout.PerWorkspace
 import           XMonad.Layout.TrackFloating
+import           XMonad.Layout.TwoPane
 import           XMonad.Layout.SimpleDecoration
 import           XMonad.Layout.Decoration
 import           XMonad.Layout.Tabbed
+import           XMonad.Layout.Spacing
+import           XMonad.Layout.IM
+import           XMonad.Layout.ResizableTile
+import           XMonad.Layout.LayoutCombinators
+import           XMonad.Layout.WindowNavigation
 import           XMonad.Operations
 import           XMonad.Prompt
 import           XMonad.Prompt.Input
@@ -61,15 +68,15 @@ myBaseConfig = defaultConfig
     , manageHook = myManageHook <+> manageDocks
     , startupHook = startup
     , handleEventHook = docksEventHook
-    , borderWidth = 3
-    , normalBorderColor = "#1f1f1f"
-    , focusedBorderColor = "#4f4f4f"
+    , borderWidth = 4
+    , normalBorderColor = "#3f3f3f"
+    , focusedBorderColor = "#6f6f6f"
     }
 
 startup = do
   spawn "compton-start"
   mapM_ (\opts -> spawn ("xset " ++ opts)) xsetOpts
-  spawn "feh --bg-fill ~/wallpaper/haskell.png"
+  spawn "feh --bg-fill ~/wallpaper/solarized-mountains_9beat7.png"
   spawn "killall taffybar-linux-x86_64"
   spawn "taffybar"
   where
@@ -121,24 +128,33 @@ myLayout =
   id
   . avoidStruts
   . trackFloating
-  . noBorders
   . fullscreenFull
   -- Full layout goes first in the Web workspace.
-  . onWorkspace "1:Web" (Full ||| lTabbed ||| lTall ||| mTall)
+  . onWorkspace "1:Web" (lFull ||| lTabbed ||| lTall ||| mTall)
   -- On the Work workspace, we use the tabbed layout first.
-  . onWorkspace "2:Work" (lTabbed ||| lTall ||| mTall ||| Full)
+  . onWorkspace "2:Work" (lTabbed ||| lTall ||| mTall ||| lFull ||| lGimp)
   -- On the IRC workspace, we can use Tall, Mirror tall, tabbed, and full.
-  . onWorkspace "3:IRC" (lTall ||| mTall ||| lTabbed ||| Full)
+  . onWorkspace "3:IRC" (lTall ||| mTall ||| lTabbed ||| lFull ||| lGimp)
   -- Workspace 4 is sometimes used for games and videos, so I use the full layout first on there.
-  . onWorkspace "4" (Full ||| lTabbed ||| lTall ||| mTall)
-  $ (lTabbed ||| lTall ||| mTall ||| Full)
-  where lTall     = Tall 1 (3/100) (1/2)
-        mTall     = Mirror lTall
-        lTabbed   = tabbedAlways shrinkText myTheme
-        -- lTabbed   = addTabsAlways shrinkText myTheme $ Tall 1 (5/100) (2/3)
+  . onWorkspace "4" (lFull ||| lTabbed ||| lTall ||| mTall ||| lGimp)
+  $ (lTabbed ||| lTall ||| mTall ||| lFull ||| lGimp)
+
+
+lTabbed = noBorders $ tabbedAlways shrinkText myTheme
+lTall = spacing 8 $ Tall 1 (3/100) (1/2)
+mTall = Mirror lTall
+lFull = noBorders Full
+lGimp = combineTwoP (spacing 8 $ TwoPane 0.03 0.7) lTabbed lTabbed (Role "gimp-image-window")
+
+
+jumpLayout :: LayoutClass l a => l a -> X ()
+jumpLayout l = sendMessage $ JumpToLayout $ description l
 
 layoutsMod = id
 
+dmenuArgs = "-y 12 -x 12 -h 24 -w 1896 -i -q -p \"$\" "
+         ++ "-sf \"#a7a7a7\" -nf \"#636363\" -nb \"#1e1e1e\" -sb \"#1e1e1e\" "
+         ++ "-fn \"Source Code Pro-9:style=Bold\""
 
 --------------- Keys ---------------
 myKeys = concat [
@@ -149,16 +165,28 @@ myKeys = concat [
   , ("M-e",    windows W.focusDown      )
   , ("M-w",    windows W.focusUp        )
 
-  , ("M-S-<Return>", windows W.swapMaster)
+  , ("M-S-<Return>", windows W.shiftMaster)
   , ("M-S-e",        windows W.swapDown  )
   , ("M-S-w",        windows W.swapUp    )
 
-  , ("M-z",    sendMessage FirstLayout)
-  , ("M-x",    sendMessage NextLayout)
+  , ("M-[", sendMessage Shrink)
+  , ("M-]", sendMessage Expand)
+  , ("M-'", sendMessage $ IncMasterN (-1))
+  , ("M-;", sendMessage $ IncMasterN 1)
+
+  , ("M-a", jumpLayout lFull)
+  , ("M-s", jumpLayout lTabbed)
+  , ("M-x", jumpLayout lTall)
+  , ("M-z", jumpLayout mTall)
+  , ("M-M1-g", jumpLayout lGimp)
 
   , ("M-p",    withFocused $ windows . W.sink)
 
   , ("M-b",    sendMessage $ ToggleStruts)
+
+
+  , ("M-C-<Right>",   sendMessage $ Move R)
+  , ("M-C-<Left>",    sendMessage $ Move L)
 
 
   -- Controls (Volume / Brightness)
@@ -166,13 +194,12 @@ myKeys = concat [
   , ("<XF86MonBrightnessDown>",   spawn "xbacklight -dec 5")
 
   -- Launch Programs
-  , ("M-<Space>", spawn "dmenu_run -l 10")
+  , ("M-<Space>", spawn ("dmenu_run " ++ dmenuArgs))
   , ("M-t"      , spawn "st -e tmux")
   , ("M-S-t"    , spawn "st")
   , ("M-v"      , spawn "pavucontrol")
-  , ("M-l"      , spawn "lock-screen -c 1f1f1f")
+  , ("M-l"      , spawn "lock-screen")
   , ("M-i"      , spawn "chromium")
-  , ("M-C-f"    , spawn "firefox")
   , ("M-C-e"    , spawn "emacs --no-desktop")
   , ("M-o"      , spawn "emacsclient -c")
   , ("M-C-q"    , spawn "quasselclient")
@@ -243,7 +270,8 @@ workspaceManageHook = composeOne
   -- Quassel goes in the IRC workspace.
   [ (propContains "quassel" className) -?> doShift "3:IRC"
 
-    -- When running via X11-Forwarding from a machine in the CS labs at school, I want gnome-terminal to be on workspace 9.
+    -- When running via X11-Forwarding from a machine in the CS labs at school,
+    -- I want gnome-terminal to be on workspace 9.
   , (className =? "Gnome-terminal" {-<&&> propContains "cs.trinity.edu" wM_CLIENT_MACHINE-}) -?> doShift "9"
   ]
 
