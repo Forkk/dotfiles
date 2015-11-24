@@ -28,7 +28,9 @@
      latex
      nixos
      emacs-lisp
+     rust
      scala
+     yaml
      org
      (shell :variables
             shell-default-shell 'eshell
@@ -70,7 +72,7 @@ before layers configuration."
    dotspacemacs-startup-banner 'official
    ;; List of items to show in the startup buffer. If nil it is disabled.
    ;; Possible values are: `recents' `bookmarks' `projects'."
-   dotspacemacs-startup-lists '(projects recents)
+   dotspacemacs-startup-lists '(projects)
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
@@ -117,7 +119,7 @@ before layers configuration."
    dotspacemacs-use-ido nil
    ;; If non nil the paste micro-state is enabled. When enabled pressing `p`
    ;; several times cycle between the kill ring content.
-   dotspacemacs-enable-paste-micro-state nil
+   dotspacemacs-enable-paste-micro-state t
    ;; Guide-key delay in seconds. The Guide-key is the popup buffer listing
    ;; the commands bound to the current keystrokes.
    dotspacemacs-guide-key-delay 0.2
@@ -166,8 +168,6 @@ before layers configuration."
    )
   ;; User initialization goes here
 
-  (require 'nix-mode)
-
   ;; Projectile
   (setq projectile-switch-project-action 'projectile-dired)
 
@@ -202,12 +202,11 @@ before layers configuration."
   "Configuration function.
  This function is called at the very end of Spacemacs initialization after
 layers configuration."
-  ;; Don't kill every single emacs frame on my system when I press "SPC q q".
-  (evil-leader/set-key
-    "qq" 'spacemacs/frame-killer
-    "qA" 'spacemacs/prompt-kill-emacs
+  ;; Flycheck
+  (spacemacs/set-leader-keys
+    "ef" 'flycheck-buffer
     )
-)
+  )
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
