@@ -246,7 +246,8 @@ toggleMuted = do
 
 volChange :: MonadIO m => Double -> m ()
 volChange by = do
-  new_vol <- modifyVolume (+ by)
+  modifyVolume (+ by)
+  new_vol <- getVolume
   spawn ("audio-notify.sh 'Volume' 'Volume changed to " ++ show new_vol ++ "%' 'speaker'")
   return ()
 
