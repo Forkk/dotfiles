@@ -241,15 +241,23 @@ baseKeys c = mkKeymap c
 toggleMuted :: MonadIO m => m ()
 toggleMuted = do
   muted <- toggleMute
-  let msg = if muted then "Audio muted" else "Audio unmuted"
-  spawn ("audio-notify.sh 'Volume' '" ++ msg ++ "' 'speaker'")
+  -- let msg = if muted then "Audio muted" else "Audio unmuted"
+  if muted
+     then spawn ("volume-notify.sh mute")
+     else do
+       vol <- getVolume
+       spawn ("volume-notify.sh vol " ++ show (floor vol))
 
 volChange :: MonadIO m => Double -> m ()
 volChange by = do
-  modifyVolume (+ by)
-  new_vol <- getVolume
-  spawn ("audio-notify.sh 'Volume' 'Volume changed to " ++ show new_vol ++ "%' 'speaker'")
-  return ()
+  muted <- getMute
+  if muted then
+    spawn ("volume-notify.sh mute")
+    else do
+    modifyVolume (+ by)
+    new_vol <- getVolume
+    spawn ("volume-notify.sh vol " ++ show (floor new_vol))
+    return ()
 
 myKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
 myKeys c = baseKeys c `M.union` workspaceScreenKeys-- `M.union` workspaceKeys
