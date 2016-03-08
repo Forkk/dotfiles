@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+set -e
+
+# NOTIFY_ID_FILE=~/.cache/audio-notify-id
+
+# NOTIFY_ARGS=(--session
+#              --dest org.freedesktop.Notifications
+#              --object-path /org/freedesktop/Notifications)
+
+# # We don't use notify-send since it doesn't support replacing existing notifications.
+# function notify_call {
+#     gdbus call "${NOTIFY_ARGS[@]}"  --method org.freedesktop.Notifications.Notify \
+#           "AudioSwitcher" "$4" "$3" "$1" "$2" \
+#           [] "[]" "int32 -1" | \
+#         sed 's/(uint32 \([0-9]\+\),)/\1/g'
+# }
+
+# function notify {
+#     replace_id=0
+#     if [[ -f $NOTIFY_ID_FILE ]]; then
+#         replace_id="$(cat $NOTIFY_ID_FILE)"
+#     fi
+
+#     notify_call "$1" "$2" "$3" "$replace_id" > $NOTIFY_ID_FILE
+#     # send-notify.sh -p $replace_arg "$1" "$2" ${@:3} > $NOTIFY_ID_FILE
+# }
+
+function notify {
+    audio-notify.sh "$@"
+}
+
+function sink-list {
+    pacmd list-sinks | grep -A 1 index | \
+        awk 'NR % 3 == 1 { if ($1 == "*") print "1",$3; else print "0",$2 }
+NR % 3 == 2 { print $2 }'
+}
+
+sinks=($(sink-list))
+inputs=($(pacmd list-sink-inputs | grep index | awk '{print $2}'))
+
+declare -A names
+headset=-1
+speakers=0
+
+cur_dev=2
+for dev in $(seq 0 3 $((${#sinks[@]} - 1))); do
+    idx=${sinks[$(($dev + 1))]}
+    pulse_name=${sinks[$(($dev + 2))]}
+    name="Unknown Device"
+    case "$pulse_name" in
+        *"G930"* ) name="Headset"; headset=$idx ;;
+        *"analog-stereo"* ) name="Line Out"; speakers=$idx ;;
+        * ) name="Unknown Device" ;;
+    esac
+    names[$idx]=$name
+
+    if [[ $dev -gt 0 ]]; then
+        indices+=($idx)
+    fi
+
+    if [[ ${sinks[$dev]} == "1" ]]; then
+        # echo "Previous device: $idx (${names[$idx]})"
+        cur_dev=$idx
+    fi
+done
+
+swap=$cur_dev
+if [[ $cur_dev == $speakers ]]; then
+    if [[ $headset == -1 ]]; then
+        notify "Switch Failed" "Headset was not found" dialog-warning
+        exit 0
+        swap=$speakers
+    else
+        swap=$headset
+    fi
+else
+    swap=$speakers
+fi
+
+echo "New output: $swap (${names[$swap]})"
+pacmd set-default-sink $swap
+
+for i in ${inputs[*]}; do
+    pacmd move-sink-input $i $swap &> /dev/null
+done
+
+notify "Audio Output Switched" "Switched audio device to ${names[$swap]}." speaker
