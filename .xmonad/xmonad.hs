@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 import Control.Monad
 import Data.Maybe
 import System.Environment
@@ -10,11 +11,14 @@ import Data.List
 import           Graphics.X11.ExtraTypes.XF86
 
 import qualified XMonad.StackSet                as W
+import           XMonad.StackSet (view, shift)
 
 import           XMonad.Layout.ComboP
 import           XMonad.Actions.CycleWS
 import           XMonad.Actions.OnScreen
 import           XMonad.Actions.PhysicalScreens
+import           XMonad.Actions.UpdatePointer
+import           XMonad.Actions.Volume
 import           XMonad.Layout                  hiding ((|||))
 import           XMonad.Layout.Fullscreen
 import           XMonad.Layout.NoBorders
@@ -64,21 +68,25 @@ myBaseConfig = defaultConfig
     , terminal = "st"
     , workspaces = myWorkspaces
     , layoutHook = myLayout
-    , keys = \c -> mkKeymap c myKeys `M.union` M.fromList workspaceKeys
+    , keys = \c -> myKeys c
     , manageHook = myManageHook <+> manageDocks
     , startupHook = startup
     , handleEventHook = docksEventHook
     , borderWidth = 4
     , normalBorderColor = "#3f3f3f"
     , focusedBorderColor = "#6f6f6f"
+    , logHook = dynamicLog >> updatePointer (0.5, 0.5) (0.25, 0.25)
     }
 
 startup = do
+  spawn "taffybar"
+  spawn "killall taffybar-linux-x86_64"
   spawn "compton-start"
   mapM_ (\opts -> spawn ("xset " ++ opts)) xsetOpts
   spawn "feh --bg-fill ~/wallpaper/solarized-mountains_9beat7.png"
-  spawn "killall taffybar-linux-x86_64"
-  spawn "taffybar"
+  spawn "xrandr --dpi 96x96"
+  spawn "net-login"
+  spawn "login-startup"
   where
     xsetOpts =
       [ "-b" -- Disable bell.
@@ -156,8 +164,10 @@ dmenuArgs = "-y 12 -x 12 -h 24 -w 1896 -i -q -p \"$\" "
          ++ "-sf \"#a7a7a7\" -nf \"#636363\" -nb \"#1e1e1e\" -sb \"#1e1e1e\" "
          ++ "-fn \"Source Code Pro-9:style=Bold\""
 
+
 --------------- Keys ---------------
-myKeys = concat [
+baseKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
+baseKeys c = mkKeymap c
   [ ("M-r", refresh)
 
   -- Layout Hotkeys
@@ -193,6 +203,11 @@ myKeys = concat [
   , ("<XF86MonBrightnessUp>",     spawn "xbacklight -inc 5")
   , ("<XF86MonBrightnessDown>",   spawn "xbacklight -dec 5")
 
+  , ("M-h", spawn "switch-audio")
+  , ("<XF86AudioRaiseVolume>", volChange 5.0)
+  , ("<XF86AudioLowerVolume>", volChange (-5.0))
+  , ("<XF86AudioMute>", toggleMuted)
+
   -- Launch Programs
   , ("M-<Space>", spawn ("dmenu_run " ++ dmenuArgs))
   , ("M-t"      , spawn "st -e tmux")
@@ -201,7 +216,6 @@ myKeys = concat [
   , ("M-l"      , spawn "lock-screen")
   , ("M-i"      , spawn "chromium")
   , ("M-C-e"    , spawn "emacs --no-desktop")
-  , ("M-o"      , spawn "emacsclient -c")
   , ("M-C-q"    , spawn "quasselclient")
   , ("M-C-t"    , spawn "ts3client")
 
@@ -223,16 +237,66 @@ myKeys = concat [
   , ("M-S-C-<F1>", spawn "monitor2 off")
   , ("M-S-C-<F2>", spawn "monitor2 on")
   ]
-  -- Switching Workspaces
-  , [("M-S-" ++ show i,  windows $ W.shift wspc) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
-  , [("M-C-" ++ show i, (windows $ W.shift wspc) >> (windows $ viewOnScreen 0 wspc)) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
-  -- Switching Screens
-  , [("M-<F" ++ show i ++ ">",   viewScreen $ P (i-1)) | i <- [1..3 :: Int]]
-  , [("M-S-<F" ++ show i ++ ">", sendToScreen $ P (i-1)) | i <- [1..3 :: Int]]
-  , [("M-C-<F" ++ show i ++ ">", sendToScreen (P (i-1)) >> viewScreen (P i)) | i <- [1..3 :: Int]]
+
+toggleMuted :: MonadIO m => m ()
+toggleMuted = do
+  muted <- toggleMute
+  let msg = if muted then "Audio muted" else "Audio unmuted"
+  spawn ("audio-notify.sh 'Volume' '" ++ msg ++ "' 'speaker'")
+
+volChange :: MonadIO m => Double -> m ()
+volChange by = do
+  new_vol <- modifyVolume (+ by)
+  spawn ("audio-notify.sh 'Volume' 'Volume changed to " ++ show new_vol ++ "%' 'speaker'")
+  return ()
+
+myKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
+myKeys c = baseKeys c `M.union` workspaceScreenKeys-- `M.union` workspaceKeys
+
+workspaceScreenKeys :: M.Map (KeyMask, KeySym) (X ())
+workspaceScreenKeys = foldr M.union M.empty
+  [ keyRange (numberRow modm) (map (windows . view) myWorkspaces)
+  , keyRange (numberRow (modm .|. shiftMask)) (map (windows . shift) myWorkspaces)
+  , keyRange (drop 2 $ asdfRow modm) (map (viewScreen . P) [0, 1 :: Int])
   ]
 
 
+  -- -- Switching Workspaces
+  -- , [("M-S-" ++ show i,  windows $ W.shift wspc) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
+
+  -- , [("M-C-" ++ show i, (windows $ W.shift wspc) >> (windows $ viewOnScreen 0 wspc)) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
+  -- -- Switching Screens
+  -- , [("M-<F" ++ show i ++ ">",   viewScreen $ P (i-1)) | i <- [1..3 :: Int]]
+  -- , [("M-S-<F" ++ show i ++ ">", sendToScreen $ P (i-1)) | i <- [1..3 :: Int]]
+  -- , [("M-C-<F" ++ show i ++ ">", sendToScreen (P (i-1)) >> viewScreen (P i)) | i <- [1..3 :: Int]]
+  -- ]
+
+asdfRow :: KeyMask -> [(KeyMask, KeySym)]
+asdfRow mask = map (mask,) [ xK_a, xK_s, xK_d, xK_f, xK_g, xK_h, xK_j, xK_k, xK_l ]
+
+qwertyRow :: KeyMask -> [(KeyMask, KeySym)]
+qwertyRow mask = map (mask,) [ xK_q, xK_w, xK_e, xK_r, xK_t, xK_y, xK_u, xK_i, xK_o, xK_p ]
+
+zxcvRow :: KeyMask -> [(KeyMask, KeySym)]
+zxcvRow mask = map (mask,) [ xK_z, xK_x, xK_c, xK_v, xK_b, xK_n, xK_m ]
+
+-- | A key range containing all of the number row keys from 1 to 9 and 0.
+numberRow :: KeyMask -> [(KeyMask, KeySym)]
+numberRow mask = map (mask,) ([xK_1..xK_9] ++ [xK_0])
+
+-- | A key range containing all of the function keys from 1 to 9 and 0.
+fnKeys :: KeyMask -> [(KeyMask, KeySym)]
+fnKeys mask = map (mask,) [xK_F1..xK_F12]
+
+-- | Takes a range of keys and zips them with the given list of actions to
+-- produce a key map.
+--
+-- If one of the lists is shorter, the other will be truncated.
+keyRange :: [(KeyMask, KeySym)] -> [X ()] -> M.Map (KeyMask, KeySym) (X ())
+keyRange keys actions = M.fromList $ zip keys actions
+
+
+-- workspaceKeys ""
 workspaceKeys =
     [ ((m .|. modm, k), windows (f i))
       | (i, k) <- zip myWorkspaces ([xK_1 .. xK_9] ++ [xK_0])
@@ -246,6 +310,8 @@ workspaceKeys =
 
 myManageHook = composeAll . concat $
   [ [ workspaceManageHook ]
+
+  , [ className =? "Xfce4-notifyd" --> doIgnore ]
 
   , [ (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat ]
 
