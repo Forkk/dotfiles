@@ -203,9 +203,11 @@ baseKeys c = mkKeymap c
   , ("<XF86MonBrightnessUp>",     spawn "xbacklight -inc 5")
   , ("<XF86MonBrightnessDown>",   spawn "xbacklight -dec 5")
 
-  , ("M-h", spawn "switch-audio")
+  , ("M-<End>", spawn "switch-audio")
   , ("<XF86AudioRaiseVolume>", volChange 5.0)
   , ("<XF86AudioLowerVolume>", volChange (-5.0))
+  , ("M-<Page_Up>", volChange 5.0)
+  , ("M-<Page_Down>", volChange (-5.0))
   , ("<XF86AudioMute>", toggleMuted)
 
   -- Launch Programs
