@@ -2,32 +2,8 @@
 
 set -e
 
-# NOTIFY_ID_FILE=~/.cache/audio-notify-id
-
-# NOTIFY_ARGS=(--session
-#              --dest org.freedesktop.Notifications
-#              --object-path /org/freedesktop/Notifications)
-
-# # We don't use notify-send since it doesn't support replacing existing notifications.
-# function notify_call {
-#     gdbus call "${NOTIFY_ARGS[@]}"  --method org.freedesktop.Notifications.Notify \
-#           "AudioSwitcher" "$4" "$3" "$1" "$2" \
-#           [] "[]" "int32 -1" | \
-#         sed 's/(uint32 \([0-9]\+\),)/\1/g'
-# }
-
-# function notify {
-#     replace_id=0
-#     if [[ -f $NOTIFY_ID_FILE ]]; then
-#         replace_id="$(cat $NOTIFY_ID_FILE)"
-#     fi
-
-#     notify_call "$1" "$2" "$3" "$replace_id" > $NOTIFY_ID_FILE
-#     # send-notify.sh -p $replace_arg "$1" "$2" ${@:3} > $NOTIFY_ID_FILE
-# }
-
 function notify {
-    audio-notify.sh "$@"
+    update-notify.sh audio "$@"
 }
 
 function sink-list {
@@ -68,7 +44,7 @@ done
 swap=$cur_dev
 if [[ $cur_dev == $speakers ]]; then
     if [[ $headset == -1 ]]; then
-        notify "Switch Failed" "Headset was not found" dialog-warning
+        notify "Switch Failed" "Headset was not found" --icon=dialog-warning
         exit 0
         swap=$speakers
     else
@@ -85,4 +61,4 @@ for i in ${inputs[*]}; do
     pacmd move-sink-input $i $swap &> /dev/null
 done
 
-notify "Audio Output Switched" "Switched audio device to ${names[$swap]}." speaker
+notify "Audio Output Switched" "Switched audio device to ${names[$swap]}." --icon=speaker

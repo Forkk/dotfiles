@@ -3,6 +3,8 @@ import Control.Monad
 import Data.Maybe
 import System.Environment
 import System.FilePath
+import System.IO
+import System.Process
 
 import           XMonad hiding ((|||))
 
@@ -36,6 +38,7 @@ import           XMonad.Layout.WindowNavigation
 import           XMonad.Operations
 import           XMonad.Prompt
 import           XMonad.Prompt.Input
+import           XMonad.Util.Run
 
 import           XMonad.Hooks.DynamicLog
 import           XMonad.Hooks.ManageDocks
@@ -200,15 +203,18 @@ baseKeys c = mkKeymap c
 
 
   -- Controls (Volume / Brightness)
-  , ("<XF86MonBrightnessUp>",     spawn "xbacklight -inc 5")
-  , ("<XF86MonBrightnessDown>",   spawn "xbacklight -dec 5")
+  , ("<XF86MonBrightnessUp>",     changeBacklight 5)
+  , ("<XF86MonBrightnessDown>",   changeBacklight (-5))
+  -- , ("<XF86MonBrightnessUp>",     spawn "xbacklight -inc 5")
+  -- , ("<XF86MonBrightnessDown>",   spawn "xbacklight -dec 5")
 
   , ("M-<End>", spawn "switch-audio")
   , ("<XF86AudioRaiseVolume>", volChange 5.0)
   , ("<XF86AudioLowerVolume>", volChange (-5.0))
+  , ("<XF86AudioMute>", toggleMuted)
   , ("M-<Page_Up>", volChange 5.0)
   , ("M-<Page_Down>", volChange (-5.0))
-  , ("<XF86AudioMute>", toggleMuted)
+  , ("M-<Home>", toggleMuted)
 
   -- Launch Programs
   , ("M-<Space>", spawn ("dmenu_run " ++ dmenuArgs))
@@ -241,25 +247,20 @@ baseKeys c = mkKeymap c
   ]
 
 toggleMuted :: MonadIO m => m ()
-toggleMuted = do
-  muted <- toggleMute
-  -- let msg = if muted then "Audio muted" else "Audio unmuted"
-  if muted
-     then spawn ("volume-notify.sh mute")
-     else do
-       vol <- getVolume
-       spawn ("volume-notify.sh vol " ++ show (floor vol))
+toggleMuted = spawn "volume toggle notify"
 
 volChange :: MonadIO m => Double -> m ()
 volChange by = do
-  muted <- getMute
-  if muted then
-    spawn ("volume-notify.sh mute")
-    else do
-    modifyVolume (+ by)
-    new_vol <- getVolume
-    spawn ("volume-notify.sh vol " ++ show (floor new_vol))
-    return ()
+  when (by > 0) $ spawn ("volume +" ++ show (floor by) ++ " notify")
+  when (by < 0) $ spawn ("volume -" ++ show (-floor by) ++ " notify")
+
+
+changeBacklight :: MonadIO m => Double -> m ()
+changeBacklight by =
+  spawn ("xbacklight -steps 1 -inc " ++ show by ++ "; \
+        \ update-notify.sh backlight \"Brightness Changed\" \
+        \ -i notification-display-brightness \
+        \ -h int:value:$(printf \"%.0f\" $(xbacklight -get))")
 
 myKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
 myKeys c = baseKeys c `M.union` workspaceScreenKeys-- `M.union` workspaceKeys

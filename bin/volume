@@ -1,0 +1,89 @@
+#!/bin/sh
+set -e
+
+# Uses amixer to change volume on default output.
+
+function is_muted {
+    # We'll just use the volume for the left channel, since they're probably
+    # both the same.
+    val=$(amixer get Master | grep "Front Left:" | awk '{ print substr($6, 2, length($6) - 2) }')
+    if [[ $val == "off" ]]; then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
+function get_vol {
+    # We'll just use the volume for the left channel, since they're probably
+    # both the same.
+    amixer get Master | grep "Front Left:" | awk '{ print substr($5, 2, length($5) - 3) }'
+}
+
+function set_vol {
+    amixer set Master "$@" > /dev/null
+}
+
+function volume_icon {
+    if is_muted; then
+        echo notification-audio-volume-muted
+    else
+        if [[ $1 -gt 66 ]]; then
+            echo notification-audio-volume-high
+        elif [[ $1 -gt 33 ]]; then
+            echo notification-audio-volume-medium
+        elif [[ $1 -gt 0 ]]; then
+            echo notification-audio-volume-low
+        else
+            echo notification-audio-volume-off
+        fi
+    fi
+}
+
+
+for arg in "$@"; do
+    case "$arg" in
+        +* )
+            by="${arg:1}"
+            cur=$(get_vol)
+            new=$(( $cur + $by ))
+            [[ $new -le 100 ]] || new=100
+            set_vol $new%
+            ;;
+        -* )
+            by="${arg:1}"
+            cur=$(get_vol)
+            new=$(( $cur - $by ))
+            [[ $new -gt 0 ]] || new=0
+            set_vol $new%
+            ;;
+        get )
+            get_vol
+            ;;
+        is_muted )
+            if is_muted; then
+                echo "muted";
+            else
+                echo "unmuted";
+            fi
+            ;;
+        mute )
+            set_vol mute
+            ;;
+        unmute )
+            set_vol unmute
+            ;;
+        toggle )
+            set_vol toggle
+            ;;
+        notify )
+            vol=$(get_vol)
+            update-notify.sh audio "Volume Changed" \
+                             -i $(volume_icon $vol) \
+                             -h int:value:$(printf "%.0f" $vol)
+            ;;
+        * )
+            set_vol $arg%
+            ;;
+    esac
+done
