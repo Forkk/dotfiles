@@ -90,6 +90,7 @@ startup = do
   spawn "xrandr --dpi 96x96"
   spawn "net-login"
   spawn "login-startup"
+  spawn "check-dotfs"
   where
     xsetOpts =
       [ "-b" -- Disable bell.
