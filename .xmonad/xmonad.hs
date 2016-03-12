@@ -88,6 +88,7 @@ startup = do
   mapM_ (\opts -> spawn ("xset " ++ opts)) xsetOpts
   spawn "feh --bg-fill ~/wallpaper/solarized-mountains_9beat7.png"
   spawn "xrandr --dpi 96x96"
+  spawn "backlight +0" -- Set backlight to the value in ~/.cache/backlight-setting
   spawn "net-login"
   spawn "login-startup"
   spawn "check-dotfs"
@@ -204,10 +205,8 @@ baseKeys c = mkKeymap c
 
 
   -- Controls (Volume / Brightness)
-  , ("<XF86MonBrightnessUp>",     changeBacklight 5)
-  , ("<XF86MonBrightnessDown>",   changeBacklight (-5))
-  -- , ("<XF86MonBrightnessUp>",     spawn "xbacklight -inc 5")
-  -- , ("<XF86MonBrightnessDown>",   spawn "xbacklight -dec 5")
+  , ("<XF86MonBrightnessUp>",     changeBacklight 10)
+  , ("<XF86MonBrightnessDown>",   changeBacklight (-10))
 
   , ("M-<End>", spawn "switch-audio")
   , ("<XF86AudioRaiseVolume>", volChange 5.0)
@@ -257,11 +256,10 @@ volChange by = do
 
 
 changeBacklight :: MonadIO m => Double -> m ()
-changeBacklight by =
-  spawn ("xbacklight -steps 1 -inc " ++ show by ++ "; \
-        \ update-notify.sh backlight \"Brightness Changed\" \
-        \ -i notification-display-brightness \
-        \ -h int:value:$(printf \"%.0f\" $(xbacklight -get))")
+changeBacklight by = do
+  when (by > 0) $ spawn ("backlight +" ++ show (floor by) ++ " notify")
+  when (by < 0) $ spawn ("backlight -" ++ show (-floor by) ++ " notify")
+
 
 myKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
 myKeys c = baseKeys c `M.union` workspaceScreenKeys-- `M.union` workspaceKeys
