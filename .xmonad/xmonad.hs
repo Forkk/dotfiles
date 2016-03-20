@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections, TypeSynonymInstances, MultiParamTypeClasses #-}
 import Control.Monad
 import Data.Maybe
 import System.Environment
@@ -39,6 +39,8 @@ import           XMonad.Operations
 import           XMonad.Prompt
 import           XMonad.Prompt.Input
 import           XMonad.Util.Run
+import           XMonad.Util.SpawnOnce
+import qualified XMonad.Util.ExtensibleState as XS
 
 import           XMonad.Hooks.DynamicLog
 import           XMonad.Hooks.ManageDocks
@@ -48,6 +50,8 @@ import           XMonad.Hooks.UrgencyHook
 import           XMonad.Hooks.EwmhDesktops (ewmh)
 import           XMonad.Util.EZConfig
 import           XMonad.Util.Types
+
+import qualified Graphics.X11.Xlib as X
 
 import System.Taffybar.Hooks.PagerHints (pagerHints)
 import System.Taffybar.XMonadLog (taffybarPP)
@@ -89,9 +93,10 @@ startup = do
   spawn "feh --bg-fill ~/wallpaper/solarized-mountains_9beat7.png"
   spawn "xrandr --dpi 96x96"
   spawn "backlight +0" -- Set backlight to the value in ~/.cache/backlight-setting
-  spawn "net-login"
-  spawn "login-startup"
   spawn "check-dotfs"
+  spawnOnce "net-login"
+  spawnOnce "login-startup"
+  spawnOnce "nm-applet"
   where
     xsetOpts =
       [ "-b" -- Disable bell.
@@ -139,6 +144,7 @@ themedXPConfig = defaultXPConfig
 --------------- Layout ---------------
 myLayout =
   id
+  . layerWindows
   . avoidStruts
   . trackFloating
   . fullscreenFull
@@ -322,7 +328,7 @@ workspaceKeys =
 myManageHook = composeAll . concat $
   [ [ workspaceManageHook ]
 
-  , [ className =? "Xfce4-notifyd" --> doIgnore ]
+  , [ className =? "Xfce4-notifyd" --> manageTop ]
 
   , [ (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat ]
 
@@ -342,6 +348,7 @@ myManageHook = composeAll . concat $
     -- Float windows whose class contains any of these strings.
     floatClassContains = []
 
+
 -- Manage hooks for moving windows to their proper default workspaces.
 workspaceManageHook = composeOne
   -- Quassel goes in the IRC workspace.
@@ -355,6 +362,50 @@ workspaceManageHook = composeOne
 -- A Query which returns true if the given property contains the given string.
 propContains :: String -> Query String -> Query Bool
 propContains str prop = fmap (str `isInfixOf`) prop
+
+--------------- Notification Handling ---------------
+
+-- | Keeps a list of unmanaged windows which should always be on top.
+data LayerWins = LayerWins { lwTop :: [Window], lwBot :: [Window] }
+    deriving (Read, Show, Typeable)
+
+instance ExtensionClass LayerWins where
+    initialValue = LayerWins [] []
+    -- extensionType = PersistentExtension
+
+manageTop :: ManageHook
+manageTop = do
+  w <- ask
+  liftX $ reveal w
+  liftX $ XS.modify (addWin w)
+  doF (W.delete w)
+  where
+    addWin :: Window -> LayerWins -> LayerWins
+    addWin w tw = tw { lwTop = w : lwTop tw }
+
+manageBot :: ManageHook
+manageBot = do
+  w <- ask
+  liftX $ reveal w
+  liftX $ XS.modify (addWin w)
+  doF (W.delete w)
+  where
+    addWin :: Window -> LayerWins -> LayerWins
+    addWin w tw = tw { lwBot = w : lwBot tw }
+
+
+data LayerWinsMod a = LayerWinsMod
+    deriving (Read, Show, Typeable)
+
+instance LayoutModifier LayerWinsMod Window where
+  hook _ = do
+    (LayerWins top bot) <- XS.get
+    withDisplay $ \d -> liftIO $ do
+      mapM_ (raiseWindow d) top
+      mapM_ (lowerWindow d) bot
+
+layerWindows :: l a -> ModifiedLayout LayerWinsMod l a
+layerWindows = ModifiedLayout LayerWinsMod
 
 
 --------------- Custom Actions ---------------
