@@ -61,4 +61,4 @@ for i in ${inputs[*]}; do
     pacmd move-sink-input $i $swap &> /dev/null
 done
 
-notify "Audio Output Switched" "Switched audio device to ${names[$swap]}." --icon=speaker
+notify "Audio Output Switched" "Switched audio device to ${names[$swap]}" --icon=speaker

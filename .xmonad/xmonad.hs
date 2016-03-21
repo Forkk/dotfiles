@@ -240,16 +240,11 @@ baseKeys c = mkKeymap c
 
   -- Misc
   , ("M-<Esc>"  , kill)
-  , ("M-c"      , spawn "toggle-cursor")
   , ("M-g"      , spawn "compton-toggle")
 
   -- Hacks
   , ("M-S-j", setWMName "LG3D")
   , ("M-S-k", setWMName "XMonad")
-
-  -- Enable/disable 2nd montior.
-  , ("M-S-C-<F1>", spawn "monitor2 off")
-  , ("M-S-C-<F2>", spawn "monitor2 on")
   ]
 
 toggleMuted :: MonadIO m => m ()
@@ -277,16 +272,6 @@ workspaceScreenKeys = foldr M.union M.empty
   , keyRange (drop 2 $ asdfRow modm) (map (viewScreen . P) [0, 1 :: Int])
   ]
 
-
-  -- -- Switching Workspaces
-  -- , [("M-S-" ++ show i,  windows $ W.shift wspc) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
-
-  -- , [("M-C-" ++ show i, (windows $ W.shift wspc) >> (windows $ viewOnScreen 0 wspc)) | (wspc, i) <- zip myWorkspaces [1..9 :: Integer]]
-  -- -- Switching Screens
-  -- , [("M-<F" ++ show i ++ ">",   viewScreen $ P (i-1)) | i <- [1..3 :: Int]]
-  -- , [("M-S-<F" ++ show i ++ ">", sendToScreen $ P (i-1)) | i <- [1..3 :: Int]]
-  -- , [("M-C-<F" ++ show i ++ ">", sendToScreen (P (i-1)) >> viewScreen (P i)) | i <- [1..3 :: Int]]
-  -- ]
 
 asdfRow :: KeyMask -> [(KeyMask, KeySym)]
 asdfRow mask = map (mask,) [ xK_a, xK_s, xK_d, xK_f, xK_g, xK_h, xK_j, xK_k, xK_l ]

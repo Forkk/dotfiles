@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+NOTIF_ARGS=--icon=dialog-information
+
+if killall compton; then
+    update-notify.sh compton "Compton" "Compositing disabled" $NOTIF_ARGS
+else
+    compton-start
+    update-notify.sh compton "Compton" "Compositing enabled" $NOTIF_ARGS
+fi

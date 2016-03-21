@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+compton -b --config $HOME/.compton.conf
