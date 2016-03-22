@@ -241,6 +241,8 @@ baseKeys c = mkKeymap c
   -- Misc
   , ("M-<Esc>"  , kill)
   , ("M-g"      , spawn "compton-toggle")
+  , ("M-C-<F1>" , spawn "monitor2 off")
+  , ("M-C-<F2>" , spawn "monitor2 on")
 
   -- Hacks
   , ("M-S-j", setWMName "LG3D")
