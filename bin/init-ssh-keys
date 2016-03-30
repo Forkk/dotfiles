@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -euf -o pipefail
+
+# Checks if ssh keys are added to the ssh-agent and, if not, adds them using
+# ssh-add and Zenity to prompt for passwords.
+
+readarray keylist < ~/.ssh/key-list
+
+KEYS=()
+for k in "${keylist[@]}"; do
+    k=$(echo "$k" | tr '\n' '\n')
+
+    if [[ -f "$k" ]]; then
+        KEY_PRINT=$(ssh-keygen -lf "$k" | awk '{print $2}')
+        if ssh-add -l | grep -q "$KEY_PRINT"; then
+            echo "Key '$k' is already added."
+        else
+            echo "Will add key '$k'"
+            KEYS+=("$k")
+        fi
+    else
+        echo "Key file '$k' does not exist!" 1>&2
+    fi
+done
+
+if [[ "${#KEYS[@]}" -gt 0 ]]; then
+    ssh-add "${KEYS[@]}" < /dev/null
+else
+    echo "All keys are already added."
+fi

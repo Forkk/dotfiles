@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+set -euf -o pipefail
+
 # Sends a nag notification if there are un-committed or un-pushed changes to my
 # dotfiles repo.
 

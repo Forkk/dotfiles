@@ -94,6 +94,7 @@ startup = do
   spawn "xrandr --dpi 96x96"
   spawn "backlight +0" -- Set backlight to the value in ~/.cache/backlight-setting
   spawn "check-dotfs"
+  spawn "init-ssh-keys"
   spawnOnce "net-login"
   spawnOnce "login-startup"
   spawnOnce "nm-applet"
