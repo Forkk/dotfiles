@@ -197,6 +197,26 @@ before layers configuration."
   (setq org-agenda-files '("~/Dropbox/todo/"
                            "~/Dropbox/todo/school/"))
   (setq org-mobile-inbox-for-pull "~/todo/new.org")
+
+  (defun load-color-scheme ()
+    "Loads light/dark color scheme from ~/.config/colorscheme"
+    (interactive)
+    (let ((color-scheme (with-temp-buffer
+                          (insert-file-contents "~/.config/colorscheme")
+                          (buffer-string))))
+      (when (string= color-scheme "light\n")
+        (spacemacs/load-theme 'solarized-light)
+        )
+      (when (string= color-scheme "dark\n")
+        (spacemacs/load-theme 'solarized-dark)
+        )
+      )
+    (message "Reloaded color scheme")
+    )
+  (global-set-key (kbd "<f13>") 'load-color-scheme)
+
+  (add-hook 'after-init-hook
+            (lambda () (load-color-scheme)))
   )
 
 (defun dotspacemacs/config ()
@@ -207,6 +227,7 @@ layers configuration."
   (spacemacs/set-leader-keys
     "ef" 'flycheck-buffer
     )
+  (load-color-scheme)
   )
 
 ;; Do not write anything past this comment. This is where Emacs will

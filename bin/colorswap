@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euf -o pipefail
+
+SCHEME_FILE=~/.config/colorscheme
+
+current=$(cat $SCHEME_FILE)
+
+function notify {
+    update-notify.sh colors "Switched Colors" "$@"
+}
+
+if [[ $current == "light" ]]; then
+    echo "Switching to dark"
+    notify "Switched to dark theme" --icon=notification-display-brightness-off
+    echo "dark" > "$SCHEME_FILE"
+else
+    echo "Switching to light"
+    notify "Switched to light theme" --icon=notification-display-brightness-full
+    echo "light" > "$SCHEME_FILE"
+fi
+
+# Update st windows. This is a hack, but it works pretty well.
+for w in `xdotool search --class xterm`; do
+    # echo "Updating $w"
+    xdotool key --window "$w" F13
+done
+
+# Update emacs windows.
+for w in `xdotool search --class emacs`; do
+    # echo "Updating $w"
+    xdotool key --window "$w" F13
+done
+# The solution below unfortunately only works for the emacs instance that was
+# started first.
+# emacsclient -e '(load-color-scheme)'
+

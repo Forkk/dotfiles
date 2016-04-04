@@ -223,6 +223,8 @@ baseKeys c = mkKeymap c
   , ("M-<Page_Down>", volChange (-5.0))
   , ("M-<Home>", toggleMuted)
 
+  , ("M-c", spawn "colorswap")
+
   -- Launch Programs
   , ("M-<Space>", spawn ("dmenu_run " ++ dmenuArgs))
   , ("M-t"      , spawn "st -e tmux")
