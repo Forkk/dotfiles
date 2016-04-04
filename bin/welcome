@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -euf -o pipefail
+
+echo "Welcome to $HOSTNAME!"
+echo ""
+
+function last_backup {
+    name=$1
+
+    journalctl -u tarsnap@"$name" -n 40 -o short-iso | grep -A 4 "Total size" | tail -n 5 \
+        | gawk -f ~/bin/tarsnap-summary.awk -v bname="$name"
+}
+
+# This may be a hack, but it's a hack that works.
+if [[ "$HOSTNAME" == "homebase" ]]; then
+ CACHE=~/.cache/welcome/
+
+    mkdir -p $CACHE
+    last_backup home | column -t -s'--' > $CACHE/bdhome
+    last_backup var | column -t -s'--' > $CACHE/bdvar
+
+    paste -d '|' $CACHE/bdhome $CACHE/bdvar | column -t -s'|' -o'   |   '
+else
+    last_backup home | column -t -s'--'
+fi

@@ -226,7 +226,7 @@ baseKeys c = mkKeymap c
   -- Launch Programs
   , ("M-<Space>", spawn ("dmenu_run " ++ dmenuArgs))
   , ("M-t"      , spawn "st -e tmux")
-  , ("M-S-t"    , spawn "st")
+  , ("M-S-t"    , spawn "st -e bash --login")
   , ("M-v"      , spawn "pavucontrol")
   , ("M-l"      , spawn "lock-screen")
   , ("M-i"      , spawn "chromium")
