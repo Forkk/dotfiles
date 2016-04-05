@@ -226,7 +226,8 @@ baseKeys c = mkKeymap c
   , ("M-c", spawn "colorswap")
 
   -- Launch Programs
-  , ("M-<Space>", spawn ("dmenu_run " ++ dmenuArgs))
+  , ("M-S-<Space>", spawn ("dmenu_run " ++ dmenuArgs))
+  , ("M-<Space>", spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgs ++ "'"))
   , ("M-t"      , spawn "st -e tmux")
   , ("M-S-t"    , spawn "st -e bash --login")
   , ("M-v"      , spawn "pavucontrol")
