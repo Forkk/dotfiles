@@ -14,10 +14,10 @@ style "taffybar-default" {
   color["violet"]    = "#6c71c4"
   color["blue"]      = "#268bd2"
   color["cyan"]      = "#2aa198"
-  color["green"]     = "#859900"
+  color["green"]     = "#00ff00"
 
-  fg[NORMAL]      = @base0
-  text[NORMAL]    = @base0
+  fg[NORMAL]      = @base2
+  text[NORMAL]    = @base2
   bg[NORMAL]      = @base03
   base[NORMAL]    = @base03
 
@@ -37,4 +37,4 @@ style "notification-button" = "default" {
 widget "Taffybar*" style "taffybar-default"
 widget "Taffybar*WindowSwitcher*label" style "taffybar-active-window"
 widget "*NotificationCloseButton" style "notification-button"
-gtk-font-name="Source Code Pro Bold 10"
+gtk-font-name="Source Code Pro 10"
