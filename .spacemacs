@@ -56,6 +56,16 @@
   "Initialization function.
 This function is called at the very startup of Spacemacs initialization
 before layers configuration."
+
+  (defun get-color-scheme ()
+    "Checks which color scheme should be used."
+    (let ((color-scheme (with-temp-buffer
+                          (insert-file-contents "~/.config/colorscheme")
+                          (buffer-string))))
+      (if (string= color-scheme "dark\n") "dark" "light")
+      )
+    )
+
   ;; This setq-default sexp is an exhaustive list of all the supported
   ;; spacemacs settings.
   (setq-default
@@ -77,16 +87,10 @@ before layers configuration."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(
-                         solarized-light
-                         solarized-dark
-                         spacemacs-light
-                         spacemacs-dark
-                         tango
-                         tango-dark
-                         monokai
-                         leuven
-                         zenburn)
+   dotspacemacs-themes (if (string= (get-color-scheme) "dark")
+                           '(solarized-dark solarized-light)
+                         '(solarized-light solarized-dark)
+                         )
    ;; If non nil the cursor color matches the state color.
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font. `powerline-scale' allows to quickly tweak the mode-line
@@ -210,6 +214,9 @@ before layers configuration."
       (when (string= color-scheme "dark\n")
         (spacemacs/load-theme 'solarized-dark)
         )
+      )
+    (let ((color-scheme (get-color-scheme)))
+      (when )
       )
     (message "Reloaded color scheme")
     )
