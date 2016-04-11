@@ -24,3 +24,7 @@ if [[ "$HOSTNAME" == "homebase" ]]; then
 else
     last_backup home | column -t -s'--'
 fi
+
+echo ""
+echo "To-do:"
+$TODO_T_PATH --task-dir ~/Dropbox/tasks --list tasks
