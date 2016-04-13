@@ -224,16 +224,17 @@ before layers configuration."
 
   (add-hook 'after-init-hook
             (lambda () (load-color-scheme)))
+
+  ;; Flycheck
+  (spacemacs/set-leader-keys
+    "ef" 'flycheck-buffer
+    )
   )
 
 (defun dotspacemacs/config ()
   "Configuration function.
  This function is called at the very end of Spacemacs initialization after
 layers configuration."
-  ;; Flycheck
-  (spacemacs/set-leader-keys
-    "ef" 'flycheck-buffer
-    )
   (load-color-scheme)
   )
 
