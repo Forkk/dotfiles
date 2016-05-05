@@ -26,10 +26,16 @@ case $1 in
         send-notify "Secondary Monitor" "Enabling secondary monitor" --icon=dialog-information
         sleep 0.5
         xrandr --output "$MON2_OUTPUT" $MON2_ARGS
+
+        echo "Restarting taffybars"
+        init-taffybars
         ;;
     off )
         send-notify "Secondary Monitor" "Disabling secondary monitor" --icon=dialog-information
         sleep 0.5
         xrandr --output "$MON2_OUTPUT" --off
+
+        echo "Restarting taffybars"
+        init-taffybars
         ;;
 esac

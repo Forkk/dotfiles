@@ -86,8 +86,7 @@ myBaseConfig = defaultConfig
     }
 
 startup = do
-  spawn "taffybar"
-  spawn "killall taffybar-linux-x86_64"
+  spawn "init-taffybars"
   spawn "compton-start"
   mapM_ (\opts -> spawn ("xset " ++ opts)) xsetOpts
   spawn "feh --bg-fill ~/wallpaper/solarized-mountains_9beat7.png"
