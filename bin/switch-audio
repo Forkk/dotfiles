@@ -25,7 +25,7 @@ for dev in $(seq 0 3 $((${#sinks[@]} - 1))); do
     pulse_name=${sinks[$(($dev + 2))]}
     name="Unknown Device"
     case "$pulse_name" in
-        *"G930"* ) name="Headset"; headset=$idx ;;
+        *"G933"* ) name="Headset"; headset=$idx ;;
         *"analog-stereo"* ) name="Line Out"; speakers=$idx ;;
         * ) name="Unknown Device" ;;
     esac
