@@ -15,13 +15,15 @@ import           Graphics.X11.ExtraTypes.XF86
 import qualified XMonad.StackSet                as W
 import           XMonad.StackSet (view, shift)
 
-import           XMonad.Layout.ComboP
 import           XMonad.Actions.CycleWS
 import           XMonad.Actions.OnScreen
 import           XMonad.Actions.PhysicalScreens
 import           XMonad.Actions.UpdatePointer
 import           XMonad.Actions.Volume
+import           XMonad.Actions.Submap
+
 import           XMonad.Layout                  hiding ((|||))
+import           XMonad.Layout.ComboP
 import           XMonad.Layout.Fullscreen
 import           XMonad.Layout.NoBorders
 import           XMonad.Layout.PerWorkspace
@@ -35,27 +37,32 @@ import           XMonad.Layout.IM
 import           XMonad.Layout.ResizableTile
 import           XMonad.Layout.LayoutCombinators
 import           XMonad.Layout.WindowNavigation
+
 import           XMonad.Operations
 import           XMonad.Prompt
 import           XMonad.Prompt.Input
-import           XMonad.Util.Run
-import           XMonad.Util.SpawnOnce
-import qualified XMonad.Util.ExtensibleState as XS
-
 import           XMonad.Hooks.DynamicLog
 import           XMonad.Hooks.ManageDocks
 import           XMonad.Hooks.ManageHelpers
 import           XMonad.Hooks.SetWMName
 import           XMonad.Hooks.UrgencyHook
 import           XMonad.Hooks.EwmhDesktops (ewmh)
+
 import           XMonad.Util.EZConfig
 import           XMonad.Util.Types
+import           XMonad.Util.Run
+import           XMonad.Util.SpawnOnce
+import qualified XMonad.Util.ExtensibleState as XS
+import qualified XMonad.Util.Dzen as DZ
 
 import qualified Graphics.X11.Xlib as X
 
 import System.Taffybar.Hooks.PagerHints (pagerHints)
 import System.Taffybar.XMonadLog (taffybarPP)
 import System.Exit
+
+import           NamedActions
+import           SubmapMenu
 
 --------------- Config ---------------
 main = do
@@ -65,7 +72,10 @@ main = do
   xmonad =<< cfg
 
 -- Apply some transformations to the config
-cfg = return $ ewmh $ pagerHints myBaseConfig
+cfg = return $ addKeys $ ewmh $ pagerHints myBaseConfig
+  where
+    addKeys :: XConfig l -> XConfig l
+    addKeys c = addDescrKeys' ((modm, xK_F1), xMessage) (const myKeys) c
 
 modm = mod4Mask
 altMask = mod1Mask
@@ -75,7 +85,7 @@ myBaseConfig = defaultConfig
     , terminal = "st"
     , workspaces = myWorkspaces
     , layoutHook = myLayout
-    , keys = \c -> myKeys c
+    -- , keys = keys defaultConfig
     , manageHook = myManageHook <+> manageDocks
     , startupHook = startup
     , handleEventHook = docksEventHook
@@ -86,15 +96,15 @@ myBaseConfig = defaultConfig
     }
 
 startup = do
-  spawn "init-taffybars"
-  spawn "compton-start"
   mapM_ (\opts -> spawn ("xset " ++ opts)) xsetOpts
+  spawnOnce "compton-start"
+  spawn "init-taffybars"
   spawn "feh --bg-fill ~/wallpaper/solarized-mountains_9beat7.png"
   spawn "xrandr --dpi 96x96"
   spawn "backlight +0" -- Set backlight to the value in ~/.cache/backlight-setting
   spawn "check-dotfs"
   spawn "init-ssh-keys"
-  spawn "dropbox-cli start"
+  spawnOnce "dropbox-cli start"
   spawnOnce "net-login"
   spawnOnce "login-startup"
   spawnOnce "nm-applet"
@@ -174,84 +184,178 @@ layoutsMod = id
 
 dmenuArgs = "-y 12 -x 12 -h 24 -w 1896 -i -q -p \"$\" "
          ++ "-sf \"#a7a7a7\" -nf \"#636363\" -nb \"#1e1e1e\" -sb \"#1e1e1e\" "
-         ++ "-fn \"Source Code Pro-9:style=Bold\""
+         ++ "-fn \"Source Code Pro-10:style=Bold\""
 
+dzenCfg = DZ.font "Source Code Pro-10:style=Bold" >=>
+          DZ.onCurr (DZ.hCenter 1600) >=>
+          DZ.y 64 >=>
+          DZ.addArgs ["-bg", "#1e1e1e"] >=>
+          DZ.addArgs ["-fg", "#a7a7a7"] >=>
+          DZ.addArgs []
 
 --------------- Keys ---------------
-baseKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
-baseKeys c = mkKeymap c
-  [ ("M-r", refresh)
 
-  -- Layout Hotkeys
-  , ("M-<Return>", windows W.focusMaster)
-  , ("M-e",    windows W.focusDown      )
-  , ("M-w",    windows W.focusUp        )
+submapMenu' t = submapMenu t dzenCfg
 
-  , ("M-S-<Return>", windows W.shiftMaster)
-  , ("M-S-e",        windows W.swapDown  )
-  , ("M-S-w",        windows W.swapUp    )
+myKeys :: [((KeyMask, KeySym), NamedAction)]
+myKeys = baseKeys ++ workspaceKeys (numberRow modm) ++ screenKeys -- `M.union` workspaceKeys
 
-  , ("M-[", sendMessage Shrink)
-  , ("M-]", sendMessage Expand)
-  , ("M-'", sendMessage $ IncMasterN (-1))
-  , ("M-;", sendMessage $ IncMasterN 1)
+baseKeys :: [((KeyMask, KeySym), NamedAction)]
+baseKeys =
+  [ subtitle "window layout"
+  , ((modm, xK_Return), addName "focus master" $ windows W.focusMaster)
+  , ((altMask, xK_Tab), addName "next window" $ windows W.focusDown)
+  , ((modm, xK_Tab), addName "prev window" $ windows W.focusUp)
+  -- , ((modm, xK_w), addName "switch up" $ windows W.focusUp)
 
-  , ("M-a", jumpLayout lFull)
-  , ("M-s", jumpLayout lTabbed)
-  , ("M-x", jumpLayout lTall)
-  , ("M-z", jumpLayout mTall)
-  , ("M-M1-g", jumpLayout lGimp)
+  , ((modm .|. shiftMask, xK_Return),
+     addName "shift window to master" $ windows W.shiftMaster)
+  , ((modm .|. shiftMask, xK_e),
+     addName "shift window down" $ windows W.swapDown)
+  , ((modm .|. shiftMask, xK_w),
+     addName "shift window up" $ windows W.swapUp)
 
-  , ("M-p",    withFocused $ windows . W.sink)
+  , ((modm, xK_bracketleft), addName "shrink master pane" $ sendMessage Shrink)
+  , ((modm, xK_bracketright), addName "expand master pane" $ sendMessage Expand)
+  , ((modm, xK_apostrophe), addName "remove 1 window from master" $ sendMessage $ IncMasterN (-1))
+  , ((modm, xK_semicolon), addName "add 1 window to master" $ sendMessage $ IncMasterN 1)
 
-  , ("M-b",    sendMessage $ ToggleStruts)
+  , ((modm, xK_s), submapMenu' "Layout Menu" layoutKeys)
 
+  , ((modm, xK_p), addName "tile focused window" $ withFocused $ windows . W.sink)
 
-  , ("M-C-<Right>",   sendMessage $ Move R)
-  , ("M-C-<Left>",    sendMessage $ Move L)
+  , ((modm, xK_b), addName "toggle status bar" $ sendMessage ToggleStruts)
 
-
-  -- Controls (Volume / Brightness)
-  , ("<XF86MonBrightnessUp>",     changeBacklight 10)
-  , ("<XF86MonBrightnessDown>",   changeBacklight (-10))
-
-  , ("M-<End>", spawn "switch-audio")
-  , ("<XF86AudioRaiseVolume>", volChange 5.0)
-  , ("<XF86AudioLowerVolume>", volChange (-5.0))
-  , ("<XF86AudioMute>", toggleMuted)
-  , ("M-<Page_Up>", volChange 5.0)
-  , ("M-<Page_Down>", volChange (-5.0))
-  , ("M-<Home>", toggleMuted)
-
-  , ("M-c", spawn "colorswap")
+  , ((modm, xK_w), submapMenu' "Workspace Menu" $ workspaceKeys wsMenuKeys)
 
   -- Launch Programs
-  , ("M-S-<Space>", spawn ("dmenu_run " ++ dmenuArgs))
-  , ("M-<Space>", spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgs ++ "'"))
-  , ("M-t"      , spawn "st -e tmux")
-  , ("M-S-t"    , spawn "st -e bash --login")
-  , ("M-v"      , spawn "pavucontrol")
-  , ("M-l"      , spawn "lock-screen")
-  , ("M-i"      , spawn "chromium")
-  , ("M-C-e"    , spawn "emacs --no-desktop")
-  , ("M-C-q"    , spawn "quasselclient")
-  , ("M-C-t"    , spawn "ts3client")
+  , subtitle "launching applications"
+  , ((modm              , xK_space),
+      addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgs ++ "'"))
+  , ((modm .|. shiftMask, xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgs))
+  , ((modm              , xK_t), addName "tmux terminal" $ spawn "st -e tmux")
+  , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "st -e bash --login")
+  , ((modm, xK_e), submapMenu' "Applications Menu" appKeys)
 
-  , ("M-q", restart "xmonad" True)
-  , ("M-S-q", restart "xmonad" False)
-  , ("M-C-S-q", quitPrompt)
-  , ("M-C-S-o", restart "temp-openbox" True)
+  -- Controls (Volume / Brightness)
+  , subtitle "audio/brightness controls"
+  , ((0, xF86XK_MonBrightnessUp  ), addName "increase brightness" $ changeBacklight 10)
+  , ((0, xF86XK_MonBrightnessDown), addName "decrease brightness" $ changeBacklight (-10))
 
-  -- Misc
-  , ("M-<Esc>"  , kill)
-  , ("M-g"      , spawn "compton-toggle")
-  , ("M-C-<F1>" , spawn "monitor2 off")
-  , ("M-C-<F2>" , spawn "monitor2 on")
+  , ((modm, xK_End), addName "swap audio device" $ spawn "switch-audio")
+  , ((0, xF86XK_AudioRaiseVolume), addName "raise volume" $ volChange 5.0)
+  , ((0, xF86XK_AudioLowerVolume), addName "lower volume" $ volChange (-5.0))
+  , ((0, xF86XK_AudioMute), addName "toggle mute" toggleMuted)
+  , ((modm, xK_Page_Up),   addName "raise volume" $ volChange 5.0)
+  , ((modm, xK_Page_Down), addName "lower volume" $ volChange (-5.0))
+  , ((modm, xK_Home), addName "toggle mute" toggleMuted)
 
-  -- Hacks
-  , ("M-S-j", setWMName "LG3D")
-  , ("M-S-k", setWMName "XMonad")
+
+  , subtitle "misc"
+  , ((modm, xK_q), submapMenu' "Restart/Quit Menu" quitKeys)
+
+  , ((modm, xK_l), addName "lock screen" $ spawn "lock-screen")
+
+  , ((modm, xK_Escape) , addName "kill window" kill)
+  , ((modm, xK_g)      , addName "toggle compositing" $ spawn "compton-toggle")
+
+
+  , ((modm, xK_F1), addName "disable secondary monitor" $ spawn "monitor2 off")
+  , ((modm, xK_F2), addName "enable secondary monitor" $ spawn "monitor2 on")
+
+  , ((modm, xK_c), addName "swap color palette" $ spawn "colorswap")
+
+  , ((modm, xK_r), submapMenu' "Misc Operations Menu" miscMenu)
   ]
+
+
+-- | Key bindings for application launching submap.
+appKeys :: [((KeyMask, KeySym), NamedAction)]
+appKeys =
+  [ ((0, xK_t), addName "teamspeak" $ spawn "ts3client")
+  , ((0, xK_v), spawn' "pavucontrol")
+  , ((0, xK_e), addName "emacs" $ spawn "emacs --no-desktop")
+  , ((0, xK_c), spawn' "chromium")
+  , ((0, xK_q), spawn' "quasselclient")
+  , ((0, xK_s), spawn' "steam")
+  , ((0, xK_d), spawn' "deluge")
+  ]
+
+
+-- | Key bindings for layout switching submap.
+layoutKeys :: [((KeyMask, KeySym), NamedAction)]
+layoutKeys =
+  [ ((0, xK_f), addName "fullscreen" $ jumpLayout lFull)
+  , ((0, xK_t), addName "tabbed" $ jumpLayout lTabbed)
+  , ((0, xK_v), addName "tall vertical" $ jumpLayout lTall)
+  , ((0, xK_h), addName "tall horizontal" $ jumpLayout mTall)
+  , ((0, xK_g), addName "gimp layout" $ jumpLayout lGimp)
+  ]
+
+
+-- | Key bindings for quitting/restarting XMonad.
+quitKeys :: [((KeyMask, KeySym), NamedAction)]
+quitKeys =
+  [ ((0, xK_r), addName "restart XMonad" $ restart "xmonad" True)
+  , ((shiftMask, xK_r), addName "restart without saving state" $ restart "xmonad" False)
+  , ((modm .|. shiftMask, xK_q), addName "log out" $ io exitSuccess)
+  , ((0, xK_o), addName "temporarily switch to Openbox" $ restart "temp-openbox" True)
+  ]
+
+
+-- | Key bindings for miscellaneous actions like switching the WM name (for
+-- swing apps).
+miscMenu :: [((KeyMask, KeySym), NamedAction)]
+miscMenu =
+  [ ((0, xK_n), addName "set WM name to LG3D to make Swing apps work" $ setWMName "LG3D")
+  , ((shiftMask, xK_n), addName "set WM name back to XMonad" $ setWMName "XMonad")
+
+  , ((0, xK_r), oneName (refresh, "refresh"))
+  ]
+
+
+-- | Keybinds for switching workspaces and moving windows between workspaces.
+workspaceKeys :: [(KeyMask, KeySym)] -> [((KeyMask, KeySym), NamedAction)]
+workspaceKeys keys = concat
+  [ zip viewKeys (map viewWS myWorkspaces)
+  , zip shiftKeys (map shiftTo myWorkspaces)
+  ]
+  where
+    viewKeys = keys
+    shiftKeys = map (\(m, k) -> (m .|. shiftMask, k)) keys
+    viewWS ws = addName ("view workspace" ++ ws) $ windows $ view ws
+    shiftTo ws = addName ("shift to workspace" ++ ws) $ windows $ shift ws
+
+
+-- | Keybinds for switching screens.
+screenKeys :: [((KeyMask, KeySym), NamedAction)]
+screenKeys = zip (drop 2 $ asdfRow modm) (map viewScreen' [0, 1 :: Int])
+  where
+    viewScreen' s = addName ("focus screen" ++ show (s+1)) $ viewScreen $ P s
+
+
+asdfRow :: KeyMask -> [(KeyMask, KeySym)]
+asdfRow mask = map (mask,) [ xK_a, xK_s, xK_d, xK_f, xK_g, xK_h, xK_j, xK_k, xK_l ]
+
+qwertyRow :: KeyMask -> [(KeyMask, KeySym)]
+qwertyRow mask = map (mask,) [ xK_q, xK_w, xK_e, xK_r, xK_t, xK_y, xK_u, xK_i, xK_o, xK_p ]
+
+zxcvRow :: KeyMask -> [(KeyMask, KeySym)]
+zxcvRow mask = map (mask,) [ xK_z, xK_x, xK_c, xK_v, xK_b, xK_n, xK_m ]
+
+wsMenuKeys :: [(KeyMask, KeySym)]
+wsMenuKeys = take 4 (numberRow 0) ++ take 5 (qwertyRow 0)
+
+-- | A key range containing all of the number row keys from 1 to 9 and 0.
+numberRow :: KeyMask -> [(KeyMask, KeySym)]
+numberRow mask = map (mask,) ([xK_1..xK_9] ++ [xK_0])
+
+-- | A key range containing all of the function keys from 1 to 9 and 0.
+fnKeys :: KeyMask -> [(KeyMask, KeySym)]
+fnKeys mask = map (mask,) [xK_F1..xK_F12]
+
+
+--------------- Actions ---------------
 
 toggleMuted :: MonadIO m => m ()
 toggleMuted = spawn "volume toggle notify"
@@ -266,52 +370,6 @@ changeBacklight :: MonadIO m => Double -> m ()
 changeBacklight by = do
   when (by > 0) $ spawn ("backlight +" ++ show (floor by) ++ " notify")
   when (by < 0) $ spawn ("backlight -" ++ show (-floor by) ++ " notify")
-
-
-myKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
-myKeys c = baseKeys c `M.union` workspaceScreenKeys-- `M.union` workspaceKeys
-
-workspaceScreenKeys :: M.Map (KeyMask, KeySym) (X ())
-workspaceScreenKeys = foldr M.union M.empty
-  [ keyRange (numberRow modm) (map (windows . view) myWorkspaces)
-  , keyRange (numberRow (modm .|. shiftMask)) (map (windows . shift) myWorkspaces)
-  , keyRange (drop 2 $ asdfRow modm) (map (viewScreen . P) [0, 1 :: Int])
-  ]
-
-
-asdfRow :: KeyMask -> [(KeyMask, KeySym)]
-asdfRow mask = map (mask,) [ xK_a, xK_s, xK_d, xK_f, xK_g, xK_h, xK_j, xK_k, xK_l ]
-
-qwertyRow :: KeyMask -> [(KeyMask, KeySym)]
-qwertyRow mask = map (mask,) [ xK_q, xK_w, xK_e, xK_r, xK_t, xK_y, xK_u, xK_i, xK_o, xK_p ]
-
-zxcvRow :: KeyMask -> [(KeyMask, KeySym)]
-zxcvRow mask = map (mask,) [ xK_z, xK_x, xK_c, xK_v, xK_b, xK_n, xK_m ]
-
--- | A key range containing all of the number row keys from 1 to 9 and 0.
-numberRow :: KeyMask -> [(KeyMask, KeySym)]
-numberRow mask = map (mask,) ([xK_1..xK_9] ++ [xK_0])
-
--- | A key range containing all of the function keys from 1 to 9 and 0.
-fnKeys :: KeyMask -> [(KeyMask, KeySym)]
-fnKeys mask = map (mask,) [xK_F1..xK_F12]
-
--- | Takes a range of keys and zips them with the given list of actions to
--- produce a key map.
---
--- If one of the lists is shorter, the other will be truncated.
-keyRange :: [(KeyMask, KeySym)] -> [X ()] -> M.Map (KeyMask, KeySym) (X ())
-keyRange keys actions = M.fromList $ zip keys actions
-
-
--- workspaceKeys ""
-workspaceKeys =
-    [ ((m .|. modm, k), windows (f i))
-      | (i, k) <- zip myWorkspaces ([xK_1 .. xK_9] ++ [xK_0])
-      , (f, m) <- [ (viewOnScreen 0, 0)
-                  , (viewOnScreen 1, altMask)
-                  , (W.greedyView, altMask .|. controlMask) ]
-    ]
 
 
 --------------- Manage Hook ---------------
