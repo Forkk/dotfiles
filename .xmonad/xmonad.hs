@@ -54,6 +54,7 @@ import           XMonad.Util.Run
 import           XMonad.Util.SpawnOnce
 import qualified XMonad.Util.ExtensibleState as XS
 import qualified XMonad.Util.Dzen as DZ
+import           XMonad.Util.Scratchpad
 
 import qualified Graphics.X11.Xlib as X
 
@@ -233,6 +234,7 @@ baseKeys =
   , ((modm              , xK_space),
       addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgs ++ "'"))
   , ((modm .|. shiftMask, xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgs))
+  , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "st -c scratchpad")
   , ((modm              , xK_t), addName "tmux terminal" $ spawn "st -e tmux")
   , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "st -e bash --login")
   , ((modm, xK_e), submapMenu' "Applications Menu" appKeys)
@@ -260,8 +262,8 @@ baseKeys =
   , ((modm, xK_g)      , addName "toggle compositing" $ spawn "compton-toggle")
 
 
-  , ((modm, xK_F1), addName "disable secondary monitor" $ spawn "monitor2 off")
-  , ((modm, xK_F2), addName "enable secondary monitor" $ spawn "monitor2 on")
+  , ((modm, xK_F2), addName "disable secondary monitor" $ spawn "monitor2 off")
+  , ((modm, xK_F3), addName "enable secondary monitor" $ spawn "monitor2 on")
 
   , ((modm, xK_c), addName "swap color palette" $ spawn "colorswap")
 
@@ -350,7 +352,7 @@ wsMenuKeys = take 4 (numberRow 0) ++ take 5 (qwertyRow 0)
 numberRow :: KeyMask -> [(KeyMask, KeySym)]
 numberRow mask = map (mask,) ([xK_1..xK_9] ++ [xK_0])
 
--- | A key range containing all of the function keys from 1 to 9 and 0.
+-- | A key range containing all of the function keys from 1 to 12.
 fnKeys :: KeyMask -> [(KeyMask, KeySym)]
 fnKeys mask = map (mask,) [xK_F1..xK_F12]
 
@@ -390,6 +392,7 @@ myManageHook = composeAll . concat $
     [ title =? "Friends" --> doFloat
     , fmap ("Update News" `isInfixOf`) title --> doFloat
     ]
+  , [ scratchpadManageHook $ W.RationalRect 0.125 0.0 0.75 0.75 ]
   ]
   where
     -- Float windows with these classes.
