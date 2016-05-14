@@ -183,9 +183,12 @@ jumpLayout l = sendMessage $ JumpToLayout $ description l
 
 layoutsMod = id
 
-dmenuArgs = "-y 12 -x 12 -h 24 -w 1896 -i -q -p \"$\" "
-         ++ "-sf \"#a7a7a7\" -nf \"#636363\" -nb \"#1e1e1e\" -sb \"#1e1e1e\" "
-         ++ "-fn \"Source Code Pro-10:style=Bold\""
+dmenuArgs = [ "-y", "12", "-x", "12", "-h", "24", "-w", "1896", "-i", "-p", "$"
+            , "-sf", "#a7a7a7", "-nf", "#636363", "-nb", "#1e1e1e", "-sb", "#1e1e1e"
+            , "-fn", "Source Code Pro-10:style=Bold"
+            ]
+
+dmenuArgStr = unwords $ map (\a -> "\"" ++ a ++ "\"") dmenuArgs
 
 dzenCfg = DZ.font "Source Code Pro-10:style=Bold" >=>
           DZ.onCurr (DZ.hCenter 1600) >=>
@@ -232,8 +235,8 @@ baseKeys =
   -- Launch Programs
   , subtitle "launching applications"
   , ((modm              , xK_space),
-      addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgs ++ "'"))
-  , ((modm .|. shiftMask, xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgs))
+      addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgStr ++ "'"))
+  , ((modm .|. shiftMask, xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgStr))
   , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "st -c scratchpad")
   , ((modm              , xK_t), addName "tmux terminal" $ spawn "st -e tmux")
   , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "st -e bash --login")
@@ -257,6 +260,8 @@ baseKeys =
   , ((modm, xK_q), submapMenu' "Restart/Quit Menu" quitKeys)
 
   , ((modm, xK_l), addName "lock screen" $ spawn "lock-screen")
+
+  , ((modm, xK_m), addName "mount external drive" mountMenu)
 
   , ((modm, xK_Escape) , addName "kill window" kill)
   , ((modm, xK_g)      , addName "toggle compositing" $ spawn "compton-toggle")
@@ -373,6 +378,12 @@ changeBacklight by = do
   when (by > 0) $ spawn ("backlight +" ++ show (floor by) ++ " notify")
   when (by < 0) $ spawn ("backlight -" ++ show (-floor by) ++ " notify")
 
+
+mountMenu :: MonadIO m => m ()
+mountMenu = do
+  driveList <- runProcessWithInput "external-disks" [] ""
+  drive <- runProcessWithInput "dmenu" dmenuArgs driveList
+  spawn ("st bash -c 'disksh " ++ drive ++ "'")
 
 --------------- Manage Hook ---------------
 

@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -euf -o pipefail
+
+function print_help {
+    cat <<EOF
+Usage:
+  disksh [OPTIONS] [DEVICE]
+
+This script mounts a block device using udisksctl mount, then runs a shell in
+the mount directory.
+
+Options:
+  -h                                Show this help.
+  -v                                Enable verbose output.
+  -k                                Keep the device mounted after the shell exits.
+  -e                                Eject/power off the device when done.
+  -p                                Ask the user whether he wants to unmount/power off the device.
+EOF
+}
+
+# Finds the first mountpoint listed by udisksctl info for the given block
+# device.
+function find_mount {
+    device="$1"
+    udisksctl info -b "$device" | grep "MountPoints" | awk '{ print $2; }'
+}
+
+# Runs an interactive bash shell with a cd alias that changes to the given
+# directory.
+function bash_cd_default {
+    bash --init-file <(echo "alias cd='HOME=\"$1\" cd'")
+}
+
+# Print message if $verbose is 1.
+function log {
+    if [[ $verbose == "1" ]]; then
+        echo $@
+    fi
+}
+
+
+verbose=0
+exit_action=ask
+
+while getopts "hvkep" opt; do
+    case "$opt" in
+        h )
+            print_help
+            exit 0
+            ;;
+        v ) verbose=1 ;;
+        k ) exit_action=none ;;
+        e ) exit_action=poweroff ;;
+        p ) exit_action=ask ;;
+    esac
+done
+shift $((OPTIND-1))
+
+device="$1"
+
+if [[ ! -b "$device" ]]; then
+    echo "Error: $device is not a block device."
+    exit 1
+fi
+
+log "Mounting device"
+udisksctl unmount -b "$1" 2> /dev/null || :
+udisksctl mount -b "$1"
+
+log "Finding mount point"
+mount_point=$(find_mount "$device")
+pushd "$mount_point"
+bash_cd_default "$mount_point" || { echo "bash exited with error $?" > /dev/stderr; }
+popd
+log "Subshell exited"
+
+while [[ "$exit_action" == "ask" ]]; do
+    # options=
+    select action in "Unmount" "Power down" "Keep mounted"; do
+        case "$action" in
+            "Unmount" )
+                exit_action=unmount
+                break
+                ;;
+            "Power down" )
+                exit_action=poweroff
+                break
+                ;;
+            "Keep mounted" )
+                exit_action=none
+                break
+                ;;
+            * )
+                echo "Unknown option. Try again"
+                ;;
+        esac
+    done
+done
+
+case "$exit_action" in
+    unmount )
+        udisksctl unmount -b "$device"
+        ;;
+    poweroff )
+        udisksctl unmount -b "$device"
+        udisksctl power-off -b "$device"
+        ;;
+    none )
+        ;;
+    * )
+        echo "Unknown exit action: $exit_action. Presuming none." > /dev/stderr
+        exit -1
+        ;;
+esac
