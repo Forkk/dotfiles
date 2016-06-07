@@ -1,3 +1,15 @@
 #!/usr/bin/env bash
 
-compton -b --config $HOME/.compton.conf
+CFGDIR="$HOME/.config/compton"
+
+# Path to base settings file.
+BASE="$CFGDIR/compton.conf"
+
+# Path to local settings file.
+LOCAL="$CFGDIR/$HOSTNAME.conf"
+
+# Path to generated config
+GEN="$HOME/.cache/compton.conf"
+
+cat $BASE $LOCAL > "$GEN"
+compton -b --config "$GEN"
