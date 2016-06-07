@@ -55,17 +55,9 @@
 (defun dotspacemacs/init ()
   "Initialization function.
 This function is called at the very startup of Spacemacs initialization
-before layers configuration."
-
-  (defun get-color-scheme ()
-    "Checks which color scheme should be used."
-    (let ((color-scheme (with-temp-buffer
-                          (insert-file-contents "~/.config/colorscheme")
-                          (buffer-string))))
-      (if (string= color-scheme "dark\n") "dark" "light")
-      )
-    )
-
+before layers configuration.
+You should not put any user code in there besides modifying the variable
+values."
   ;; This setq-default sexp is an exhaustive list of all the supported
   ;; spacemacs settings.
   (setq-default
@@ -87,10 +79,12 @@ before layers configuration."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes (if (string= (get-color-scheme) "dark")
-                           '(solarized-dark solarized-light)
-                         '(solarized-light solarized-dark)
-                         )
+   dotspacemacs-themes '(solarized-dark solarized-light)
+
+   ;; (if (string= (get-color-scheme) "dark")
+   ;;     '(solarized-dark solarized-light)
+   ;;   '(solarized-light solarized-dark)
+   ;;   )
    ;; If non nil the cursor color matches the state color.
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font. `powerline-scale' allows to quickly tweak the mode-line
@@ -171,59 +165,38 @@ before layers configuration."
    ;; Not used for now.
    dotspacemacs-default-package-repository nil
    )
-  ;; User initialization goes here
+  )
+
+(defun dotspacemacs/user-init ()
+  "Initialization function for user code.
+It is called immediately after `dotspacemacs/init'.  You are free to put almost
+any user code here.  The exception is org related code, which should be placed
+in `dotspacemacs/user-config'."
+  (defun get-color-scheme ()
+    "Checks which color scheme should be used."
+    (let ((color-scheme (with-temp-buffer (insert-file-contents "~/.config/colorscheme") (buffer-string))))
+      (if (string= color-scheme "dark\n") "dark" "light")
+      )
+    )
 
   ;; Projectile
   (setq projectile-switch-project-action 'projectile-dired)
 
   ;; Haskell mode
   (add-to-list 'exec-path "~/.cabal/bin")
-  ;; (setq shm-program-name (concat (getenv "HOME") "/.cabal/bin/structured-haskell-mode"))
   (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
-  ;; Switch between Literate Haskell and Markdown
-  (add-hook 'literate-haskell-mode-hook
-            (lambda ()
-              (global-set-key (kbd "M-\\") 'markdown-mode)))
-  (add-hook 'markdown-mode-hook
-            (lambda ()
-              (global-set-key (kbd "M-\\") 'literate-haskell-mode)))
 
-  ;; Eshell mode
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (define-key eshell-mode-map
-                [remap eshell-pcomplete]
-                'helm-esh-pcomplete)))
-
-  ;; Org Mode
-  (setq org-directory "~/todo")
-  (setq org-mobile-directory "~/Dropbox/MobileOrg")
-  (setq org-agenda-files '("~/Dropbox/todo/"
-                           "~/Dropbox/todo/school/"))
-  (setq org-mobile-inbox-for-pull "~/todo/new.org")
-
+  ;; Color swapping
   (defun load-color-scheme ()
     "Loads light/dark color scheme from ~/.config/colorscheme"
     (interactive)
-    (let ((color-scheme (with-temp-buffer
-                          (insert-file-contents "~/.config/colorscheme")
-                          (buffer-string))))
-      (when (string= color-scheme "light\n")
-        (spacemacs/load-theme 'solarized-light)
-        )
-      (when (string= color-scheme "dark\n")
-        (spacemacs/load-theme 'solarized-dark)
-        )
-      )
     (let ((color-scheme (get-color-scheme)))
-      (when )
+      (when (string= color-scheme "light") (spacemacs/load-theme 'solarized-light))
+      (when (string= color-scheme "dark") (spacemacs/load-theme 'solarized-dark))
       )
     (message "Reloaded color scheme")
     )
   (global-set-key (kbd "<f13>") 'load-color-scheme)
-
-  (add-hook 'after-init-hook
-            (lambda () (load-color-scheme)))
 
   ;; Flycheck
   (spacemacs/set-leader-keys
@@ -231,12 +204,22 @@ before layers configuration."
     )
   )
 
-(defun dotspacemacs/config ()
-  "Configuration function.
- This function is called at the very end of Spacemacs initialization after
-layers configuration."
+(defun dotspacemacs/user-config ()
+  "Configuration function for user code.
+This function is called at the very end of Spacemacs initialization after
+layers configuration. You are free to put any user code."
+
+  ;; ;; Org Mode
+  ;; (setq org-directory "~/todo")
+  ;; (setq org-mobile-directory "~/Dropbox/MobileOrg")
+  ;; (setq org-agenda-files '("~/Dropbox/todo/"
+  ;;                          "~/Dropbox/todo/school/"))
+  ;; (setq org-mobile-inbox-for-pull "~/todo/new.org")
+
+
   (load-color-scheme)
   )
+
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
