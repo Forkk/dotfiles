@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euf -o pipefail
+set -euf
 
 echo "Welcome to $HOSTNAME!"
 echo ""
@@ -14,13 +14,13 @@ function last_backup {
 
 # This may be a hack, but it's a hack that works.
 if [[ "$HOSTNAME" == "homebase" ]]; then
- CACHE=~/.cache/welcome/
+    CACHE=~/.cache/welcome/
 
-    mkdir -p $CACHE
-    last_backup home | column -t -s'--' > $CACHE/bdhome
-    last_backup var | column -t -s'--' > $CACHE/bdvar
+    mkdir -p "$CACHE"
+    last_backup home | column -t -s'--' > "$CACHE/bdhome"
+    last_backup var | column -t -s'--' > "$CACHE/bdvar"
 
-    paste -d '|' $CACHE/bdhome $CACHE/bdvar | column -t -s'|' -o'   |   '
+    paste -d '|' "$CACHE/bdhome" "$CACHE/bdvar" | column -t -s'|' -o'   |   '
 else
     last_backup home | column -t -s'--'
 fi
