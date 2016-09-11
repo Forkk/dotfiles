@@ -93,7 +93,7 @@ myBaseConfig = defaultConfig
     , borderWidth = 4
     , normalBorderColor = "#3f3f3f"
     , focusedBorderColor = "#6f6f6f"
-    , logHook = dynamicLog >> updatePointer (0.5, 0.5) (0.25, 0.25)
+    , logHook = updatePointer (0.5, 0.5) (0.25, 0.25)
     }
 
 startup = do
@@ -183,7 +183,8 @@ jumpLayout l = sendMessage $ JumpToLayout $ description l
 
 layoutsMod = id
 
-dmenuArgs = [ "-y", "12", "-x", "12", "-h", "24", "-w", "1896", "-i", "-p", "$"
+dmenuArgs = [ "-y", "12", "-x", "12", "-w", "1896", "-i", "-p", "$"
+            --, "-h", "24" -- Requires height patch
             , "-sf", "#a7a7a7", "-nf", "#636363", "-nb", "#1e1e1e", "-sb", "#1e1e1e"
             , "-fn", "Source Code Pro-10:style=Bold"
             ]
@@ -191,8 +192,8 @@ dmenuArgs = [ "-y", "12", "-x", "12", "-h", "24", "-w", "1896", "-i", "-p", "$"
 dmenuArgStr = unwords $ map (\a -> "\"" ++ a ++ "\"") dmenuArgs
 
 dzenCfg = DZ.font "Source Code Pro-10:style=Bold" >=>
-          DZ.onCurr (DZ.hCenter 1600) >=>
-          DZ.y 64 >=>
+          DZ.y 480 >=>
+          DZ.onCurr (DZ.hCenter 600) >=>
           DZ.addArgs ["-bg", "#1e1e1e"] >=>
           DZ.addArgs ["-fg", "#a7a7a7"] >=>
           DZ.addArgs []
@@ -273,6 +274,7 @@ baseKeys =
   , ((modm, xK_c), addName "swap color palette" $ spawn "colorswap")
 
   , ((modm, xK_r), submapMenu' "Misc Operations Menu" miscMenu)
+  , ((modm .|. shiftMask, xK_q), addName "restart XMonad" $ restart "xmonad" True)
   ]
 
 

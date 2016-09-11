@@ -2,6 +2,8 @@
 
 set -euf -o pipefail
 
+TAFFYBAR="$HOME/.cabal/bin/taffybar"
+
 
 # Find and kill any running taffybars.
 echo "Killing old taffybars"
@@ -17,5 +19,5 @@ echo "Starting new taffybars for $count monitors"
 for n in $(seq 1 $count); do
     i=$(( $n - 1 ))
     echo "Starting for monitor $i"
-    (TAFFY_MONITOR=$i taffybar &)
+    (TAFFY_MONITOR=$i "$TAFFYBAR" &)
 done
