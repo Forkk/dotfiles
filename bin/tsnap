@@ -1,0 +1,120 @@
+#!/bin/bash
+
+set -euf -o pipefail
+
+log_path="/home/forkk/tarsnap/log"
+
+# Tarsnap wrapper script
+
+case "$2" in
+    'home' )
+        bakname="home"
+        keyfile="/home/forkk/tarsnap/home.key"
+        cachedir="/home/forkk/tarsnap/cache/home"
+        dirs=("/home/forkk")
+        excludes=(
+            "/home/forkk/.local/share/Steam/"
+            "/home/forkk/VirtualBox VMs/"
+            "/home/forkk/virt/"
+            "/home/forkk/trash/"
+            "/home/forkk/Downloads/"
+            "/home/forkk/Dropbox/"
+            "/home/forkk/.cache/"
+            # Characters in filenames in here can't be made into UTF-8 :(
+            "/home/forkk/touhou/"
+        )
+        log="$log_path/home.log"
+        ;;
+    'etc' )
+        bakname="etc"
+        keyfile="/home/forkk/tarsnap/homebase-etc.key"
+        cachedir="/home/forkk/tarsnap/cache/etc"
+        dirs=("/etc" "/usr/share/portage")
+        excludes=("")
+        log="$log_path/etc.log"
+        ;;
+    'ultpro' )
+        bakname=""
+        keyfile="/home/forkk/tarsnap/ultpro.key"
+        cachedir="/home/forkk/tarsnap/ultpro-cachedir"
+        dirs=()
+        excludes=()
+        log="$log_path/ultpro.log"
+        ;;
+esac
+
+exclude_args=()
+
+function teelog {
+    tee -a "$log"
+}
+
+args=()
+case "$1" in
+    'ls' )
+        cmd="--list-archives"
+        args=("")
+        ;;
+    'bak' )
+        doing_backup=1
+        if [ "$bakname" == "etc" ] && [ "$USER" != "root" ]; then
+            echo "Must be root to backup /etc"
+            exit 1
+        fi
+
+        cmd="-c"
+        name="$bakname-$(date +%F_%H-%M)"
+        args=("--print-stats" "--humanize-numbers" "-f" "$name")
+
+        # Add excludes
+        for pat in "${excludes[@]}"; do
+            if [[ "$pat" != "" ]]; then
+                args+=("--exclude" "$pat")
+            fi
+        done
+
+        for dir in "${dirs[@]}"; do
+            args+=("$dir")
+        done
+        ;;
+    'del' )
+        cmd="-d"
+        args=()
+        for bak in "${@:3}"; do
+            echo "Will delete backup $bak"
+            args+=("-f" "$bak")
+        done
+        ;;
+    'fsck' )
+        name="$bakname-$(date +%F_%H-%M)"
+        cmd="--fsck"
+        ;;
+    'stat' )
+        cmd="--print-stats"
+        args=("--humanize-numbers")
+        ;;
+    * )
+        cmd="$1"
+        args="${@:2}"
+        ;;
+esac
+
+function baklog {
+    if [[ -v doing_backup ]]; then
+        tee -a "$log"
+    else
+        cat /dev/stdin
+    fi
+}
+
+if [[ -v doing_backup ]]; then
+    echo "Starting backup at: $(date)" | teelog
+fi
+
+echo tarsnap "$cmd" --keyfile "$keyfile" --cachedir "$cachedir" "${args[@]}"
+tarsnap "$cmd" --keyfile "$keyfile" --cachedir "$cachedir" "${args[@]}" 2>&1 | baklog
+
+if [[ -v doing_backup ]]; then
+    echo "Finished backup at: $(date)" | baklog
+    echo `date` > "$log_path/last_$bakname"
+fi
