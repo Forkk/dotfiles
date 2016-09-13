@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+
+# This script manages a set of "notices" which can be used to alert the user of
+# problems that may have occurred in the system such as a backup failing.
+# Notices are stored in sequentially numberred files in ~/.notices/x.nt where x
+# is the number. The contents of the files are simply the body of the notice.
+
+set -euf -o pipefail
+
+# Directory to store notices in
+NT_DIR="$HOME/.notices"
+
+if [ ! -d "$NT_DIR" ]; then
+    echo "Creating $NT_DIR"
+    mkdir -p "$NT_DIR"
+fi
+
+usage_err() {
+    echo "Usage error: $1"
+    cat <<EOF
+Usage: nt [args..] [command]
+EOF
+    # Run nt -h for more help
+    exit 1
+}
+
+
+dismiss() {
+    id="$1"
+    echo $id
+
+    # Apparently, regexes are how we check if variables are numbers in bash.
+    if ! [[ "$id" =~ ^[0-9]+$ ]]; then
+        echo "Invalid ID: Must be a positive integer."
+        exit -1
+    fi
+
+    file="$NT_DIR/$id.nt"
+
+    if ! [ -f "$file" ]; then
+        echo "No such notice"
+        exit -2
+    fi
+
+    rm "$file"
+}
+
+notify () {
+    msg="$1"
+    echo "$1"
+
+    # The ID to use for the next notice is stored in this file.
+    ID_FILE="$NT_DIR/.next-id"
+
+    # This isn't thread safe. If this script is run concurrently, a notice might
+    # be overwritten.
+    if [ -f "$ID_FILE" ]; then
+        id=$(cat "$ID_FILE")
+    else
+        id=0
+    fi
+
+    # This helps the concurrency problem mentioned above by not allowing us to
+    # overwrite notices, but it means that this command may fail for one process
+    # trying to report a notice.
+    set -o noclobber
+
+    # Write our message to the notice file.
+    echo "$msg" > "$NT_DIR/$id.nt"
+
+    set +o noclobber
+
+    next_id=$(( $id + 1 ))
+    echo "$next_id" > "$ID_FILE"
+}
+
+print() {
+    # Re-enable globbing to get a list of all the notice files
+    set +f
+    files=("$NT_DIR"/*.nt)
+    set -f
+
+    # When the globbing above fails because there are not notices, this makes
+    # sure the script doesn't try printing them.
+    if [[ "${files[@]}" == "$NT_DIR/*.nt" ]]; then
+        # There are no notices. Print nothing.
+        exit 0
+    fi
+
+    nt_cnt="${#files[@]}"
+    echo "$nt_cnt new notices:"
+    echo
+
+    for nfile in "${files[@]}"; do
+        date=$(date -d @`stat -c %Y $nfile`)
+
+        filename=$(basename "$nfile")
+        # Remove the .nt extension to get the id
+        id="${filename%.*}"
+
+        echo "$id) $date:"
+        cat "$nfile"
+        echo
+    done
+}
+
+clear() {
+    set +f
+    rm "$NT_DIR"/*.nt
+    set -f
+    rm "$NT_DIR/.next-id"
+    exit
+}
+
+
+if [ ! -n "${1-}" ]; then
+    usage_err "No command given"
+fi
+
+cmd="$1"
+shift 1
+
+# Run subcommands
+case "$cmd" in
+    d | dis | dismiss )
+        dismiss "$@"
+        ;;
+
+    clear )
+        clear "$@"
+        ;;
+
+    n | notify )
+        notify "$@"
+        ;;
+
+    p | print )
+        print "$@"
+        ;;
+    * )
+        usage_err "Unknown subcommand"
+        ;;
+esac

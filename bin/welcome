@@ -5,26 +5,44 @@ set -euf
 echo "Welcome to $HOSTNAME!"
 echo ""
 
+function backup_info {
+    bakdate=`cat ~/tarsnap/log/last_$1`
+    echo "$1 last backup -- $bakdate"
+
+    bakdate_u=$(date -d "$bakdate" +%s)
+    min_ago_u=$(date -d "-24 hours" +%s)
+    if [[ "$bakdate_u" -lt "$min_ago_u" ]]; then
+        # If our last backup was over 24 hours ago...
+        echo -e "\033[1;31mwarning:\033[0m \033[1;31mlast $1 backup over 24 hr ago\033[0m"
+        # echo -e "warning -- last %s backup over %d hr ago"
+    fi
+    cat "/home/forkk/tarsnap/log/$1.log" | grep -A 4 "Total size" | tail -n 5 \
+        | gawk -f ~/bin/tarsnap-summary-gentoo.awk -v bname="$name"
+}
+
 function last_backup {
     name=$1
 
-    journalctl -u tarsnap@"$name" -n 40 -o short-iso | grep -A 4 "Total size" | tail -n 5 \
-        | gawk -f ~/bin/tarsnap-summary.awk -v bname="$name"
+    if [[ "$HOSTNAME" == "homebase" ]]; then
+        backup_info "$name"
+    else
+        journalctl -u tarsnap@"$name" -n 40 -o short-iso | grep -A 4 "Total size" | tail -n 5 \
+            | gawk -f ~/bin/tarsnap-summary.awk -v bname="$name"
+    fi
 }
 
 # This may be a hack, but it's a hack that works.
 if [[ "$HOSTNAME" == "homebase" ]]; then
-    CACHE=~/.cache/welcome/
-
-    mkdir -p "$CACHE"
-    last_backup home | column -t -s'--' > "$CACHE/bdhome"
-    last_backup var | column -t -s'--' > "$CACHE/bdvar"
-
-    paste -d '|' "$CACHE/bdhome" "$CACHE/bdvar" | column -t -s'|' -o'   |   '
+    last_backup home | column -t -s'--'
+    echo ""
+    last_backup etc | column -t -s'--'
+    echo ""
 else
     last_backup home | column -t -s'--'
 fi
 
-echo ""
-echo "To-do:"
-$TODO_T_PATH --task-dir ~/Dropbox/tasks --list tasks
+nt p
+
+# echo ""
+# echo "To-do:"
+# "$TODO_T_PATH" --task-dir ~/Dropbox/tasks --list tasks
