@@ -2,48 +2,39 @@
 
 set -euf -o pipefail
 
+#
+# Tarsnap wrapper script
+#
+# This command wraps tarsnap and shortens several commands like --list-archives,
+# as well as providing named backup configuration in ~/.config/tsnap.
+#
+#
+# Config template
+# bakname="home"
+# keyfile="/path/to/keyfile/home.key"
+# cachedir="/path/to/cache/home"
+# dirs=("/home/forkk")
+# excludes=(
+#     "/home/forkk/.local/share/Steam/"
+# )
+# log="$log_path/home.log"
+#
+
+cfg_dir="/home/forkk/.config/tsnap"
 log_path="/home/forkk/tarsnap/log"
 
-# Tarsnap wrapper script
+usage() {
+    echo "usage: $0 <cmd> <cfg_name>"
+}
 
-case "$2" in
-    'home' )
-        bakname="home"
-        keyfile="/home/forkk/tarsnap/home.key"
-        cachedir="/home/forkk/tarsnap/cache/home"
-        dirs=("/home/forkk")
-        excludes=(
-            "/home/forkk/.local/share/Steam/"
-            "/home/forkk/VirtualBox VMs/"
-            "/home/forkk/virt/"
-            "/home/forkk/trash/"
-            "/home/forkk/Downloads/"
-            "/home/forkk/Dropbox/"
-            "/home/forkk/.cache/"
-            # Characters in filenames in here can't be made into UTF-8 :(
-            "/home/forkk/touhou/"
-        )
-        log="$log_path/home.log"
-        ;;
-    'etc' )
-        bakname="etc"
-        keyfile="/home/forkk/tarsnap/homebase-etc.key"
-        cachedir="/home/forkk/tarsnap/cache/etc"
-        dirs=("/etc" "/usr/share/portage")
-        excludes=("")
-        log="$log_path/etc.log"
-        ;;
-    'ultpro' )
-        bakname=""
-        keyfile="/home/forkk/tarsnap/ultpro.key"
-        cachedir="/home/forkk/tarsnap/ultpro-cachedir"
-        dirs=()
-        excludes=()
-        log="$log_path/ultpro.log"
-        ;;
-esac
 
-exclude_args=()
+if [[ -z "$2" ]]; then
+    echo "Expected backup name"
+    usage
+    exit -1
+fi
+
+source "$cfg_dir/$2"
 
 function teelog {
     tee -a "$log"
@@ -57,11 +48,6 @@ case "$1" in
         ;;
     'bak' )
         doing_backup=1
-        if [ "$bakname" == "etc" ] && [ "$USER" != "root" ]; then
-            echo "Must be root to backup /etc"
-            exit 1
-        fi
-
         cmd="-c"
         name="$bakname-$(date +%F_%H-%M)"
         args=("--print-stats" "--humanize-numbers" "-f" "$name")
