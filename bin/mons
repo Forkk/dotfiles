@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# This script controls monitor output
+
+set -e
+
+conf_dir="$HOME/.config/mons"
+
+#
+# This script allows changing between different monitor configurations quickly.
+# Configurations comprise a set of shell scripts in ~/.config/mons/. Each
+# script corresponds to a "mode". This script simply displays a notification,
+# waits breifly, and then executes the script for whatever node is given as an
+# argument.
+#
+
+if [[ ! -d $conf_dir ]]; then
+    echo "Missing config directory $conf_dir"
+    exit -1
+fi
+
+if [[ -z "$1" ]]; then
+    echo "No mode specified"
+fi
+mode="$1"
+
+script="$conf_dir/$mode"
+
+send-notify "Changing Display Mode" "Changing to display mode '$mode'" --icon=dialog-information
+sleep 1
+"$script"
