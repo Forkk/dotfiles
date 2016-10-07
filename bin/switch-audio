@@ -2,6 +2,16 @@
 
 set -e
 
+line_out=""
+line_out_name="Line Out"
+case "$HOSTNAME" in
+    homebase )
+        line_out="hdmi"
+        line_out_name="HDMI"
+        ;;
+    * ) line_out="analog-stereo" ;;
+esac
+
 function notify {
     update-notify.sh audio "$@"
 }
@@ -26,7 +36,7 @@ for dev in $(seq 0 3 $((${#sinks[@]} - 1))); do
     name="Unknown Device"
     case "$pulse_name" in
         *"G933"* ) name="Headset"; headset=$idx ;;
-        *"analog-stereo"* ) name="Line Out"; speakers=$idx ;;
+        *"$line_out"* ) name="$line_out_name"; speakers=$idx ;;
         * ) name="Unknown Device" ;;
     esac
     names[$idx]=$name
