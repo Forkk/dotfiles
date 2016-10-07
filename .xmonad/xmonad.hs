@@ -5,6 +5,7 @@ import System.Environment
 import System.FilePath
 import System.IO
 import System.Process
+import Network.BSD (getHostName)
 
 import           XMonad hiding ((|||))
 
@@ -73,10 +74,11 @@ main = do
   xmonad =<< cfg
 
 -- Apply some transformations to the config
-cfg = return $ addKeys $ ewmh $ pagerHints myBaseConfig
+cfg = do
+    keys <- myKeys
+    return $ addKeys keys $ ewmh $ pagerHints myBaseConfig
   where
-    addKeys :: XConfig l -> XConfig l
-    addKeys c = addDescrKeys' ((modm, xK_F1), xMessage) (const myKeys) c
+    addKeys keys c = addDescrKeys' ((modm, xK_F1), xMessage) (const keys) c
 
 modm = mod4Mask
 altMask = mod1Mask
@@ -97,7 +99,8 @@ myBaseConfig = defaultConfig
     }
 
 startup = do
-  mapM_ (\opts -> spawn ("xset " ++ opts)) xsetOpts
+  spawn "init-xset"
+  spawn "xmodmap ~/.Xmodmap"
   spawnOnce "compton-start"
   spawn "init-taffybars"
   spawn "feh --bg-fill ~/wallpaper/solarized-mountains_9beat7.png"
@@ -109,13 +112,6 @@ startup = do
   spawnOnce "net-login"
   spawnOnce "login-startup"
   spawnOnce "nm-applet"
-  where
-    xsetOpts =
-      [ "-b" -- Disable bell.
-      , "-dpms" -- Don't turn off my screen.
-      , "s off" -- Disable screensaver.
-      , "r rate 200 42" -- Key repeat delay and rate.
-      ]
 
 --------------- Workspaces ---------------
 myWorkspaces = ["1:Web", "2:Work", "3:IRC", "4", "5", "6", "7", "8", "9"]
@@ -202,8 +198,11 @@ dzenCfg = DZ.font "Source Code Pro-10:style=Bold" >=>
 
 submapMenu' t = submapMenu t dzenCfg
 
-myKeys :: [((KeyMask, KeySym), NamedAction)]
-myKeys = baseKeys ++ workspaceKeys (numberRow modm) ++ screenKeys -- `M.union` workspaceKeys
+-- This is an IO action since keys can vary between hosts
+myKeys :: IO [((KeyMask, KeySym), NamedAction)]
+myKeys = do
+  hostname <- getHostName
+  return (baseKeys ++ workspaceKeys (numberRow modm) ++ screenKeys ++ hostKeys hostname) -- `M.union` workspaceKeys
 
 baseKeys :: [((KeyMask, KeySym), NamedAction)]
 baseKeys =
@@ -235,9 +234,9 @@ baseKeys =
 
   -- Launch Programs
   , subtitle "launching applications"
-  , ((modm              , xK_space),
-      addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgStr ++ "'"))
-  , ((modm .|. shiftMask, xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgStr))
+  -- , ((modm              , xK_space),
+  --     addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgStr ++ "'"))
+  , ((modm              , xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgStr))
   , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "st -c scratchpad")
   , ((modm              , xK_t), addName "tmux terminal" $ spawn "st -e tmux")
   , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "st -e bash --login")
@@ -267,15 +266,28 @@ baseKeys =
   , ((modm, xK_Escape) , addName "kill window" kill)
   , ((modm, xK_g)      , addName "toggle compositing" $ spawn "compton-toggle")
 
-
-  , ((modm, xK_F2), addName "disable secondary monitor" $ spawn "monitor2 off")
-  , ((modm, xK_F3), addName "enable secondary monitor" $ spawn "monitor2 on")
-
   , ((modm, xK_c), addName "swap color palette" $ spawn "colorswap")
 
   , ((modm, xK_r), submapMenu' "Misc Operations Menu" miscMenu)
   , ((modm .|. shiftMask, xK_q), addName "restart XMonad" $ restart "xmonad" True)
   ]
+
+-- | Hostname-specific key bindings
+hostKeys "homebase" =
+  -- Monitor switching
+  [ ((modm, xK_F2), addName "enable main monitor only" $ spawn "mons main")
+  , ((modm, xK_F3), addName "enable second monitor only" $ spawn "mons second")
+  , ((modm, xK_F4), addName "enable both monitors" $ spawn "mons both")
+
+  -- WinVM attach/detach
+  , ((modm, xK_F5), addName "detach keyboard and mouse from WinVM" $ (spawn "vmctx lin" >> restart "xmonad" True))
+  , ((modm, xK_F6), addName "attach keyboard and mouse to WinVM" $ spawn "vmctx win")
+  ]
+hostKeys "nixpro" =
+  [ ((modm, xK_F2), addName "disable secondary monitor" $ spawn "monitor2 off")
+  , ((modm, xK_F3), addName "enable secondary monitor" $ spawn "monitor2 on")
+  ]
+hostKeys _ = []
 
 
 -- | Key bindings for application launching submap.
