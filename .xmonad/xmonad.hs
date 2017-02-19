@@ -260,6 +260,7 @@ baseKeys =
   , ((modm, xK_q), submapMenu' "Restart/Quit Menu" quitKeys)
 
   , ((modm, xK_l), addName "lock screen" $ spawn "lock-screen")
+  , ((modm, xK_n), addName "clear notifications" $ spawn "killall xfce4-notifyd")
 
   , ((modm, xK_m), addName "mount external drive" mountMenu)
 
@@ -267,6 +268,8 @@ baseKeys =
   , ((modm, xK_g)      , addName "toggle compositing" $ spawn "compton-toggle")
 
   , ((modm, xK_c), addName "swap color palette" $ spawn "colorswap")
+
+  , ((modm, xK_v), addName "post screenshot" $ spawn "bash -c 'sleep 0.2; pscrot -s'")
 
   , ((modm, xK_r), submapMenu' "Misc Operations Menu" miscMenu)
   , ((modm .|. shiftMask, xK_q), addName "restart XMonad" $ restart "xmonad" True)
@@ -296,10 +299,12 @@ appKeys =
   [ ((0, xK_t), addName "teamspeak" $ spawn "ts3client")
   , ((0, xK_v), spawn' "pavucontrol")
   , ((0, xK_e), addName "emacs" $ spawn "emacs --no-desktop")
-  , ((0, xK_c), spawn' "chromium")
+  , ((0, xK_c), spawn' "google-chrome-stable")
   , ((0, xK_q), spawn' "quasselclient")
   , ((0, xK_s), spawn' "steam")
   , ((0, xK_d), spawn' "deluge")
+  , ((0, xK_i), spawn' "google-chrome-stable --app=https://discordapp.com")
+  , ((0, xK_m), spawn' "google-chrome-stable --app=https://music.google.com")
   ]
 
 
@@ -433,7 +438,7 @@ workspaceManageHook = composeOne
 
     -- When running via X11-Forwarding from a machine in the CS labs at school,
     -- I want gnome-terminal to be on workspace 9.
-  , (className =? "Gnome-terminal" {-<&&> propContains "cs.trinity.edu" wM_CLIENT_MACHINE-}) -?> doShift "9"
+  --, (className =? "Gnome-terminal" {-<&&> propContains "cs.trinity.edu" wM_CLIENT_MACHINE-}) -?> doShift "9"
   ]
 
 -- A Query which returns true if the given property contains the given string.
