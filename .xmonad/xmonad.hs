@@ -214,9 +214,9 @@ baseKeys =
 
   , ((modm .|. shiftMask, xK_Return),
      addName "shift window to master" $ windows W.shiftMaster)
-  , ((modm .|. shiftMask, xK_e),
+  , ((modm .|. shiftMask, xK_Up),
      addName "shift window down" $ windows W.swapDown)
-  , ((modm .|. shiftMask, xK_w),
+  , ((modm .|. shiftMask, xK_Down),
      addName "shift window up" $ windows W.swapUp)
 
   , ((modm, xK_bracketleft), addName "shrink master pane" $ sendMessage Shrink)
@@ -241,6 +241,7 @@ baseKeys =
   , ((modm              , xK_t), addName "tmux terminal" $ spawn "st -e tmux")
   , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "st -e bash --login")
   , ((modm, xK_e), submapMenu' "Applications Menu" appKeys)
+  , ((modm .|. shiftMask, xK_e), submapMenu' "Remote Applications Menu" remoteAppKeys)
 
   -- Controls (Volume / Brightness)
   , subtitle "audio/brightness controls"
@@ -293,21 +294,27 @@ hostKeys "nixpro" =
 hostKeys _ = []
 
 
--- | Key bindings for application launching submap.
 appKeys :: [((KeyMask, KeySym), NamedAction)]
-appKeys =
-  [ ((0, xK_t), addName "teamspeak" $ spawn "ts3client")
-  , ((0, xK_v), spawn' "pavucontrol")
-  , ((0, xK_e), addName "emacs" $ spawn "emacs --no-desktop")
-  , ((0, xK_c), spawn' "google-chrome-stable")
-  , ((0, xK_q), spawn' "quasselclient")
-  , ((0, xK_s), spawn' "steam")
-  , ((0, xK_d), spawn' "deluge")
-  , ((0, xK_i), spawn' "google-chrome-stable --app=https://discordapp.com")
-  , ((0, xK_m), spawn' "google-chrome-stable --app=https://music.google.com")
-  , ((0, xK_n), spawn' "google-chrome-stable --app=https://netflix.com")
-  , ((0, xK_p), spawn' "google-chrome-stable --app=https://plex.tv/web")
-  , ((shiftMask, xK_p), spawn' "google-chrome-stable --app=https://pandora.com")
+appKeys = map (\(key, cmd) -> (key, spawn' cmd)) appMenu
+
+remoteAppKeys :: [((KeyMask, KeySym), NamedAction)]
+remoteAppKeys = map (\(key, cmd) -> (key, spawn' ("ssh -Y forkk.ddns.net " ++ cmd))) appMenu
+
+-- | Key bindings for application launching submap.
+appMenu :: [((KeyMask, KeySym), String)]
+appMenu =
+  [ ((0, xK_t), "ts3client")
+  , ((0, xK_v), "pavucontrol")
+  , ((0, xK_e), "emacs --no-desktop")
+  , ((0, xK_c), "google-chrome-stable")
+  , ((0, xK_q), "quasselclient")
+  , ((0, xK_s), "steam")
+  , ((0, xK_d), "deluge")
+  , ((0, xK_i), "google-chrome-stable --app=https://discordapp.com")
+  , ((0, xK_m), "google-chrome-stable --app=https://music.google.com")
+  , ((0, xK_n), "google-chrome-stable --app=https://netflix.com")
+  , ((0, xK_p), "google-chrome-stable --app=https://plex.tv/web")
+  , ((shiftMask, xK_p), "google-chrome-stable --app=https://pandora.com")
   ]
 
 
