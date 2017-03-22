@@ -305,6 +305,9 @@ appKeys =
   , ((0, xK_d), spawn' "deluge")
   , ((0, xK_i), spawn' "google-chrome-stable --app=https://discordapp.com")
   , ((0, xK_m), spawn' "google-chrome-stable --app=https://music.google.com")
+  , ((0, xK_n), spawn' "google-chrome-stable --app=https://netflix.com")
+  , ((0, xK_p), spawn' "google-chrome-stable --app=https://plex.tv/web")
+  , ((shiftMask, xK_p), spawn' "google-chrome-stable --app=https://pandora.com")
   ]
 
 
