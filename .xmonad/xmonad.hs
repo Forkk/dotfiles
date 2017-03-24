@@ -310,7 +310,7 @@ appMenu =
   , ((0, xK_q), "quasselclient")
   , ((0, xK_s), "steam")
   , ((0, xK_d), "deluge")
-  , ((0, xK_i), "google-chrome-stable --app=https://discordapp.com")
+  , ((0, xK_i), "discord")
   , ((0, xK_m), "google-chrome-stable --app=https://music.google.com")
   , ((0, xK_n), "google-chrome-stable --app=https://netflix.com")
   , ((0, xK_p), "google-chrome-stable --app=https://plex.tv/web")
