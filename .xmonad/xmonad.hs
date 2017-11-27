@@ -20,7 +20,7 @@ import           XMonad.Actions.CycleWS
 import           XMonad.Actions.OnScreen
 import           XMonad.Actions.PhysicalScreens
 import           XMonad.Actions.UpdatePointer
-import           XMonad.Actions.Volume
+--import           XMonad.Actions.Volume
 import           XMonad.Actions.Submap
 
 import           XMonad.Layout                  hiding ((|||))
@@ -100,6 +100,7 @@ myBaseConfig = defaultConfig
 
 startup = do
   spawn "init-xset"
+  spawn "init-wallpaper"
   spawn "xmodmap ~/.Xmodmap"
   spawnOnce "compton-start"
   spawn "init-taffybars"
@@ -236,10 +237,12 @@ baseKeys =
   , subtitle "launching applications"
   -- , ((modm              , xK_space),
   --     addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgStr ++ "'"))
-  , ((modm              , xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgStr))
+  --, ((modm              , xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgStr))
+  , ((modm              , xK_space), addName "run command" $ spawn ("rofi -combi-modi window,run -show combi -modi combi"))
   , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "st -c scratchpad")
   , ((modm              , xK_t), addName "tmux terminal" $ spawn "st -e tmux")
   , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "st -e bash --login")
+  , ((modm .|. altMask, xK_t), addName "tmux attach" $ attachMenu)
   , ((modm, xK_e), submapMenu' "Applications Menu" appKeys)
   , ((modm .|. shiftMask, xK_e), submapMenu' "Remote Applications Menu" remoteAppKeys)
 
@@ -315,6 +318,7 @@ appMenu =
   , ((0, xK_n), "google-chrome-stable --app=https://netflix.com")
   , ((0, xK_p), "google-chrome-stable --app=https://plex.tv/web")
   , ((shiftMask, xK_p), "google-chrome-stable --app=https://pandora.com")
+  , ((shiftMask, xK_s), "google-chrome-stable --app=https://www.sharelatex.com")
   ]
 
 
@@ -408,10 +412,21 @@ changeBacklight by = do
   when (by < 0) $ spawn ("backlight -" ++ show (-floor by) ++ " notify")
 
 
+-- Uses rofi to prompt the user to select an item from a list.
+promptList :: MonadIO m => [String] -> m String
+promptList lst = runProcessWithInput "rofi" ["-dmenu"] (unlines lst)
+
+attachMenu :: MonadIO m => m ()
+attachMenu = do
+  sessList <- lines <$> runProcessWithInput "tmux" ["list-sessions", "-F", "#S"] ""
+  sess <- promptList sessList
+  spawn ("st bash -c 'tmux attach -t " ++ sess ++ "'")
+
+
 mountMenu :: MonadIO m => m ()
 mountMenu = do
-  driveList <- runProcessWithInput "external-disks" [] ""
-  drive <- runProcessWithInput "dmenu" dmenuArgs driveList
+  driveList <- lines <$> runProcessWithInput "external-disks" [] ""
+  drive <- promptList driveList
   spawn ("st bash -c 'disksh " ++ drive ++ "'")
 
 --------------- Manage Hook ---------------
@@ -420,6 +435,7 @@ myManageHook = composeAll . concat $
   [ [ workspaceManageHook ]
 
   , [ className =? "Xfce4-notifyd" --> manageTop ]
+  , [ title =? "livewallpaper" --> manageBot ]
 
   , [ (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat ]
 
