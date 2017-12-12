@@ -33,9 +33,9 @@ echo "Blurring"
 convert -blur 0x4 "$tmpdir/screen.png" "$tmpdir/screen.png"
 
 # Overlay our lock icon
-echo "Overlaying icon"
-convert -gravity center -composite -matte \
-  "$tmpdir/screen.png" "$LOCK_ICON" "$tmpdir/screen.png"
+#echo "Overlaying icon"
+#convert -gravity center -composite -matte \
+#  "$tmpdir/screen.png" "$LOCK_ICON" "$tmpdir/screen.png"
 
 # Lock the screen
 i3lock -n -i "$tmpdir/screen.png" &
