@@ -158,7 +158,7 @@ myLayout =
   . trackFloating
   . fullscreenFull
   -- Full layout goes first in the Web workspace.
-  . onWorkspace "1:Web" (lFull ||| lTabbed ||| lTall ||| mTall)
+  . onWorkspace "1:Web" (lTabbedBot ||| lTabbed ||| lFull ||| lTall ||| mTall)
   -- On the Work workspace, we use the tabbed layout first.
   . onWorkspace "2:Work" (lTabbed ||| lTall ||| mTall ||| lFull ||| lGimp)
   -- On the IRC workspace, we can use Tall, Mirror tall, tabbed, and full.
@@ -169,6 +169,7 @@ myLayout =
 
 
 lTabbed = noBorders $ tabbedAlways shrinkText myTheme
+lTabbedBot = noBorders $ tabbedBottom shrinkText myTheme
 lTall = spacing 8 $ Tall 1 (3/100) (1/2)
 mTall = Mirror lTall
 lFull = noBorders Full
@@ -327,6 +328,7 @@ layoutKeys :: [((KeyMask, KeySym), NamedAction)]
 layoutKeys =
   [ ((0, xK_f), addName "fullscreen" $ jumpLayout lFull)
   , ((0, xK_t), addName "tabbed" $ jumpLayout lTabbed)
+  , ((shiftMask, xK_t), addName "tabbed bottom" $ jumpLayout lTabbedBot)
   , ((0, xK_v), addName "tall vertical" $ jumpLayout lTall)
   , ((0, xK_h), addName "tall horizontal" $ jumpLayout mTall)
   , ((0, xK_g), addName "gimp layout" $ jumpLayout lGimp)
