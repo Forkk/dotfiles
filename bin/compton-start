@@ -12,4 +12,4 @@ LOCAL="$CFGDIR/$HOSTNAME.conf"
 GEN="$HOME/.cache/compton.conf"
 
 cat $BASE $LOCAL > "$GEN"
-compton -b --config "$GEN"
+compton -b --config "$GEN" "$@"
