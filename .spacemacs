@@ -12,6 +12,7 @@
    ;; of a list then all discovered layers will be installed.
    dotspacemacs-configuration-layers
    '(
+     javascript
      python
      html
      ;; ----------------------------------------------------------------
@@ -26,8 +27,11 @@
      (git :variables
           git-gutter-use-fringe t)
      markdown
+     c-c++
      haskell
-     latex
+     (latex :variables
+            latex-build-command "LatexMk")
+     bibtex
      nixos
      emacs-lisp
      rust
@@ -35,6 +39,7 @@
      lua
      yaml
      org
+     shell-scripts
      (shell :variables
             shell-default-shell 'eshell
             shell-default-height 30
@@ -174,6 +179,7 @@ values."
 It is called immediately after `dotspacemacs/init'.  You are free to put almost
 any user code here.  The exception is org related code, which should be placed
 in `dotspacemacs/user-config'."
+
   (defun get-color-scheme ()
     "Checks which color scheme should be used."
     (let ((color-scheme (with-temp-buffer (insert-file-contents "~/.config/colorscheme") (buffer-string))))
@@ -210,6 +216,9 @@ in `dotspacemacs/user-config'."
   "Configuration function for user code.
 This function is called at the very end of Spacemacs initialization after
 layers configuration. You are free to put any user code."
+
+  ;; Automatically update pdf previews
+  (add-hook 'doc-view-mode-hook 'auto-revert-mode)
 
   ;; ;; Org Mode
   ;; (setq org-directory "~/todo")
