@@ -29,3 +29,4 @@ script="$conf_dir/$mode"
 send-notify "Changing Display Mode" "Changing to display mode '$mode'" --icon=dialog-information
 sleep 1
 "$script"
+xmonad --restart
