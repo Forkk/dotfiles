@@ -2,7 +2,7 @@
 
 set -euf -o pipefail
 
-TAFFYBAR="$HOME/.cabal/bin/taffybar"
+TAFFYBAR="$(which taffybar)"
 
 
 # Find and kill any running taffybars.
