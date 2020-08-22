@@ -10,23 +10,74 @@ conf_dir="$HOME/.config/mons"
 # This script allows changing between different monitor configurations quickly.
 # Configurations comprise a set of shell scripts in ~/.config/mons/. Each
 # script corresponds to a "mode". This script simply displays a notification,
-# waits breifly, and then executes the script for whatever node is given as an
+# waits breifly, and then executes the script for whatever mode is given as an
 # argument.
 #
+
+usage() {
+    cat <<EOF
+Usage: $0 [OPTIONS] MODE
+Switch the display mode to MODE based on configuations specified in ${conf_dir}
+
+Options:
+  -n    display notifications using notify-send
+  -r    don't re-initialize wallpaper and status bars after switching modes
+  -h    display this help message and exit
+EOF
+}
+
+notify=
+reinit=
+
+# To allow specifying more options after the mode, we first read options, then
+# read the mode, and then read more options. We can't use functions for this,
+# since reading options needs to shift the argument list and functions can only
+# shift their local argument list. We use a while loop as a workaround.
+
+while [[ "$#" -gt 0 ]]; do
+    unset OPTIND
+    unset OPTARG
+    unset OPTERR
+    while getopts ":nrh" opt; do
+        case $opt in
+            n ) notify=1 ;;
+            r ) reinit=1 ;;
+            h ) usage; exit ;;
+            \?) echo "Invalid option $opt" ;;
+        esac
+        shift $((OPTIND-1))
+    done
+
+    if ! [[ -z "$1" ]]; then
+        mode="$1"
+        shift 1
+    fi
+done
+[[ -z "$mode" ]] && mode="default"
+
+error() {
+    echo "$1"
+    [[ -z "$notify" ]] || send-notify "Display Change Error" "$1" --icon=dialog-error
+    exit -1
+}
 
 if [[ ! -d $conf_dir ]]; then
     echo "Missing config directory $conf_dir"
     exit -1
 fi
 
-if [[ -z "$1" ]]; then
-    echo "No mode specified"
-fi
-mode="$1"
-
 script="$conf_dir/$mode"
+if ! [[ -f "$script" ]]; then
+    error "There is no display mode called $mode."
+fi
 
-send-notify "Changing Display Mode" "Changing to display mode '$mode'" --icon=dialog-information
+[[ -z "$notify" ]] || send-notify "Changing Display Mode" "Changing to display mode '$mode'" --icon=dialog-information
 sleep 1
 "$script"
-xmonad --restart
+
+if [[ -z "$reinit" ]]; then
+    #xmonad --restart
+    init-wallpaper
+    init-taffybars
+    xrandr --dpi 96x96
+fi

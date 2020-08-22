@@ -99,16 +99,17 @@ myBaseConfig = defaultConfig
     }
 
 startup = do
+  spawnOnce "mons default"
   spawn "init-xset"
   spawn "init-wallpaper"
+  spawn "init-host-specific" -- This script will run any host-specific startup commands
   spawn "xmodmap ~/.Xmodmap"
   spawnOnce "compton-start"
   spawn "init-taffybars"
-  spawn "feh --bg-fill ~/wallpaper/solarized-mountains_9beat7.png"
   spawn "xrandr --dpi 96x96"
   spawn "backlight +0" -- Set backlight to the value in ~/.cache/backlight-setting
   spawn "check-dotfs"
-  spawn "init-ssh-keys"
+  --spawn "init-ssh-keys"
   spawnOnce "dropbox-cli start"
   spawnOnce "net-login"
   spawnOnce "login-startup"
@@ -239,8 +240,8 @@ baseKeys =
   -- , ((modm              , xK_space),
   --     addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgStr ++ "'"))
   --, ((modm              , xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgStr))
-  , ((modm              , xK_space), addName "run command" $ spawn ("rofi -combi-modi window,run -show combi -modi combi"))
-  , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "st -c scratchpad")
+  , ((modm              , xK_space), addName "run command" $ spawn "rofi -combi-modi window,run -show combi -modi combi")
+  , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "st -c scratchpad -n scratchpad")
   , ((modm              , xK_t), addName "tmux terminal" $ spawn "st -e tmux")
   , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "st -e bash --login")
   , ((modm .|. altMask, xK_t), addName "tmux attach" $ attachMenu)
@@ -283,9 +284,9 @@ baseKeys =
 -- | Hostname-specific key bindings
 hostKeys "homebase" =
   -- Monitor switching
-  [ ((modm, xK_F2), addName "enable main monitor only" $ spawn "mons main")
-  , ((modm, xK_F3), addName "enable second monitor only" $ spawn "mons second")
-  , ((modm, xK_F4), addName "enable both monitors" $ spawn "mons both")
+  [ ((modm, xK_F2), addName "enable main monitor only" $ spawn "mons -n main")
+  , ((modm, xK_F3), addName "enable second monitor only" $ spawn "mons -n second")
+  , ((modm, xK_F4), addName "enable both monitors" $ spawn "mons -n both")
 
   -- WinVM attach/detach
   , ((modm, xK_F5), addName "detach keyboard and mouse from WinVM" $ (spawn "vmctx lin" >> restart "xmonad" True))
@@ -371,9 +372,14 @@ workspaceKeys keys = concat
 
 -- | Keybinds for switching screens.
 screenKeys :: [((KeyMask, KeySym), NamedAction)]
-screenKeys = zip (drop 2 $ asdfRow modm) (map viewScreen' [0, 1 :: Int])
+screenKeys = focusKeys ++ swapKeys
   where
+    focusKeys = zip (drop 2 $ asdfRow modm) (map viewScreen' [0, 1 :: Int])
     viewScreen' s = addName ("focus screen" ++ show (s+1)) $ viewScreen $ P s
+    swapKeys =
+        [ ((modm .|. shiftMask, xK_d), addName "swap workspaces with next screen" swapNextScreen)
+        , ((modm .|. shiftMask, xK_f), addName "swap workspaces with previus screen" swapPrevScreen)
+        ]
 
 
 asdfRow :: KeyMask -> [(KeyMask, KeySym)]

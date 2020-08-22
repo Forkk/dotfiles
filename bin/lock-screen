@@ -2,7 +2,8 @@
 
 set -euf -o pipefail
 
-DISP_TIMEOUT=600
+#DISP_TIMEOUT=600
+DISP_TIMEOUT=30
 LOCK_ICON=~/bin/data/lockicon.png
 
 revert() {
