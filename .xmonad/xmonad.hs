@@ -241,9 +241,9 @@ baseKeys =
   --     addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgStr ++ "'"))
   --, ((modm              , xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgStr))
   , ((modm              , xK_space), addName "run command" $ spawn "rofi -combi-modi window,run -show combi -modi combi")
-  , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "st -c scratchpad -n scratchpad")
-  , ((modm              , xK_t), addName "tmux terminal" $ spawn "st -e tmux")
-  , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "st -e bash --login")
+  , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "alacritty --class scratchpad -e bash --login")
+  , ((modm              , xK_t), addName "tmux terminal" $ spawn "alacritty -e tmux")
+  , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "alacritty -e bash --login")
   , ((modm .|. altMask, xK_t), addName "tmux attach" $ attachMenu)
   , ((modm, xK_e), submapMenu' "Applications Menu" appKeys)
   , ((modm .|. shiftMask, xK_e), submapMenu' "Remote Applications Menu" remoteAppKeys)
@@ -429,14 +429,14 @@ attachMenu :: MonadIO m => m ()
 attachMenu = do
   sessList <- lines <$> runProcessWithInput "tmux" ["list-sessions", "-F", "#S"] ""
   sess <- promptList sessList
-  spawn ("st bash -c 'tmux attach -t " ++ sess ++ "'")
+  spawn ("alacritty -e bash -c 'tmux attach -t " ++ sess ++ "'")
 
 
 mountMenu :: MonadIO m => m ()
 mountMenu = do
   driveList <- lines <$> runProcessWithInput "external-disks" [] ""
   drive <- promptList driveList
-  spawn ("st bash -c 'disksh " ++ drive ++ "'")
+  spawn ("alacritty bash -c 'disksh " ++ drive ++ "'")
 
 --------------- Manage Hook ---------------
 
