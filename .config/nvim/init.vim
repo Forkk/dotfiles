@@ -17,6 +17,7 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-repeat'
 Plug 'kana/vim-submode'
 Plug 'raimondi/delimitmate'
+Plug 'simnalamburt/vim-mundo'
 Plug 'liuchengxu/vim-which-key'
 
 " Code Completion
@@ -70,6 +71,10 @@ set completeopt=menuone
 set timeoutlen=300
 set termguicolors
 set guifont=Source\ Code\ Pro:h12
+
+" Persistent undo
+set undofile
+set undodir=~/.vim/undo
 
 colorscheme gruvbox
 
@@ -176,6 +181,9 @@ nnoremap <leader>er :CocRestart<cr>
 let g:which_key_map.s = { 'name' : '+snippets', 'e': 'edit snippets' }
 nnoremap <leader>se :CocCommand snippets.editSnippets<cr>
 
+let g:which_key_map.u = { 'name' : '+undo', 'u': 'toggle undo tree' }
+nnoremap <leader>uu :MundoToggle<cr>
+
 let g:which_key_map.g = { 'name' : '+git',
             \ 'g': 'fugitive UI in new tab', 'G': 'fugitive UI in split',
             \ 's': 'git status', 'd': 'git diff', 'l': 'git log',
@@ -261,10 +269,6 @@ set statusline+=\ (%l,%c%V)\
 
 " TextEdit might fail if hidden is not set.
 set hidden
-
-" Some servers have issues with backup files, see #649.
-"set nobackup
-"set nowritebackup
 
 " Give more space for displaying messages.
 set cmdheight=2
