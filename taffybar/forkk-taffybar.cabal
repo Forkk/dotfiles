@@ -1,0 +1,25 @@
+name:                forkk-taffybar
+version:             0.1.0.0
+author:              Forkk
+maintainer:          contact@forkk.net
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable taffybar
+  hs-source-dirs:      .
+  main-is:             taffybar.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , containers
+                     , directory
+                     , process
+                     , filepath
+                     , parsec
+                     , gtk3
+                     , gi-gtk
+                     , taffybar
+                     , text
+                     , gi-cairo-render>=0.1.0
+                     , X11>=1.8
+  default-language:    Haskell2010
+

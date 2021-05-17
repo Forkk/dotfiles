@@ -1,0 +1,101 @@
+@define-color transparent rgba(0.0, 0.0, 0.0, 0.0);
+
+@define-color bg0 #282828;
+@define-color bg1 #3c3836;
+@define-color bg2 #504945;
+@define-color bg3 #665c54;
+@define-color bg4 #7c6f64;
+@define-color fg4 #a89984;
+@define-color fg3 #bdae93;
+@define-color fg2 #d5c4a1;
+@define-color fg1 #ebdbb2;
+@define-color fg0 #fbf1c7;
+
+@define-color green #b8bb26;
+@define-color red #fb4934;
+@define-color yellow #fabd2f;
+@define-color blue #83a598;
+@define-color orange #fe8019;
+@define-color purple #d3869b;
+@define-color aqua #8ec07c;
+
+
+/* Top level styling */
+
+.taffy-window {
+    padding: 0px;
+    margin: 0px;
+}
+
+.taffy-window * {
+    padding-top: 0px;
+	font-family: "Source Code Pro";
+	font-size: 10pt;
+}
+
+.taffy-window>* {
+    padding: 0px;
+	color: @fg0;
+    background-color: @bg0;
+}
+
+/* Workspaces styling */
+
+.workspace-label {
+	padding-right: 12px;
+	padding-left: 12px;
+	font-size: 10pt;
+}
+
+.empty {
+    color: @bg3;
+}
+
+.active {
+    color: @bg0;
+	background-color: @fg1;
+}
+
+.visible {
+	background-color: @bg2;
+}
+
+
+.network {
+    padding-left: 8px;
+    padding-right: 8px;
+    /* min-width: 180px; */
+    /* background-color: @yellow; */
+}
+
+.cpu {
+    padding-left: 8px;
+    padding-right: 8px;
+    /* background-color: @green; */
+}
+
+.memory {
+    padding-left: 8px;
+    padding-right: 8px;
+    /* background-color: @purple; */
+}
+
+.gpu {
+    padding-left: 8px;
+    padding-right: 8px;
+    /* background-color: @aqua; */
+}
+
+.io {
+    padding-left: 8px;
+    padding-right: 8px;
+    /* background-color: @blue; */
+}
+
+.clock {
+    padding-left: 8px;
+    padding-right: 8px;
+    color: @bg0;
+    background-color: @green;
+}
+
