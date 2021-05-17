@@ -2,9 +2,9 @@
 
 NOTIF_ARGS=--icon=dialog-information
 
-if killall compton; then
-    update-notify.sh compton "Compton" "Compositing disabled" $NOTIF_ARGS
+if killall picom; then
+    update-notify.sh compositor "Compositor" "Compositing disabled" $NOTIF_ARGS
 else
     compton-start
-    update-notify.sh compton "Compton" "Compositing enabled" $NOTIF_ARGS
+    update-notify.sh compositor "Compositor" "Compositing enabled" $NOTIF_ARGS
 fi

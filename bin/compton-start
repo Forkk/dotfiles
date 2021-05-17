@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-CFGDIR="$HOME/.config/compton"
+CFGDIR="$HOME/.config/picom"
 
 # Path to base settings file.
-BASE="$CFGDIR/compton.conf"
+BASE="$CFGDIR/picom.conf"
 
 # Path to local settings file.
 LOCAL="$CFGDIR/$HOSTNAME.conf"
 
 # Path to generated config
-GEN="$HOME/.cache/compton.conf"
+GEN="$HOME/.cache/picom.conf"
 
 cat $BASE $LOCAL > "$GEN"
-compton -b --config "$GEN" "$@"
+picom -b --config "$GEN" "$@"
