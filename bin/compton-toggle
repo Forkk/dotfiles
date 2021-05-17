@@ -3,8 +3,8 @@
 NOTIF_ARGS='--icon=dialog-information --urgency=low'
 
 if killall picom; then
-    update-notify.sh compositor "Compositor" "Compositing disabled" $NOTIF_ARGS
+    dunstify -h string:x-dunst-stack-tag:compositor "Compositor" "Compositing disabled" $NOTIF_ARGS
 else
     compton-start
-    update-notify.sh compositor "Compositor" "Compositing enabled" $NOTIF_ARGS
+    dunstify -h string:x-dunst-stack-tag:compositor "Compositor" "Compositing enabled" $NOTIF_ARGS
 fi

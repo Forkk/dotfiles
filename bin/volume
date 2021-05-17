@@ -1,9 +1,26 @@
 #!/bin/sh
 set -e
 
+UPDATE_NOTIFY=$HOME/bin/update-notify.sh
+
 # Uses amixer to change volume on default output.
 
+# Get the index of the selected sink:
+get_sink() {
+    pacmd list-sinks |
+        awk '/index:/{i++} /* index:/{print i; exit}'
+}
+
+# Get the selected sink volume
+get_vol() {
+    volpct=$(pacmd list-sinks |
+        awk '/^\svolume:/{i++} i=='$(get_sink)'{print $5; exit}')
+    echo ${volpct::-1}
+}
+
 function is_muted {
+    # FIXME: This is broken
+    return 1;
     # We'll just use the volume for the left channel, since they're probably
     # both the same.
     val=$(amixer get Master | grep "Front Left:" | awk '{ print substr($6, 2, length($6) - 2) }')
@@ -14,32 +31,35 @@ function is_muted {
     fi
 }
 
-function get_vol {
-    # We'll just use the volume for the left channel, since they're probably
-    # both the same.
-    amixer get Master | grep "Front Left:" | awk '{ print substr($5, 2, length($5) - 3) }'
-}
-
 function set_vol {
-    amixer set Master "$@" > /dev/null
+    echo $@
+    pactl set-sink-volume @DEFAULT_SINK@ "$@"
 }
 
 function volume_icon {
     if is_muted; then
-        echo notification-audio-volume-muted
+        echo audio-volume-muted
     else
         if [[ $1 -gt 66 ]]; then
-            echo notification-audio-volume-high
+            echo audio-volume-high
         elif [[ $1 -gt 33 ]]; then
-            echo notification-audio-volume-medium
+            echo audio-volume-medium
         elif [[ $1 -gt 0 ]]; then
-            echo notification-audio-volume-low
+            echo audio-volume-low
         else
-            echo notification-audio-volume-off
+            echo audio-volume-low
         fi
     fi
 }
 
+volume_bar() {
+    volume=$(get_vol)
+    fillbcount=$(($volume / 5 + 1))
+    fillblocks=$(seq -s " " $fillbcount | sed 's/[0-9]//g')
+    emptyblocks=$(seq -s " " $((22 - $fillbcount)) | sed 's/[0-9]//g')
+    echo -n '<span background="#fbf1c7">'"$fillblocks"'</span>'
+    echo    '<span background="#282828">'"$emptyblocks"'</span>'
+}
 
 for arg in "$@"; do
     case "$arg" in
@@ -78,9 +98,12 @@ for arg in "$@"; do
             ;;
         notify )
             vol=$(get_vol)
-            update-notify.sh audio "Volume Changed" \
-                             -i $(volume_icon $vol) \
-                             -h int:value:$(printf "%.0f" $vol)
+            echo $(volume_icon $vol)
+            dunstify "Volume" \
+                "$(volume_bar) $vol%" \
+                -i $(volume_icon $vol) \
+                --urgency=low \
+                -h string:x-dunst-stack-tag:volume
             ;;
         * )
             set_vol $arg%
