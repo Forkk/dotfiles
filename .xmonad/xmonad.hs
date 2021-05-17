@@ -60,7 +60,6 @@ import           XMonad.Util.Scratchpad
 import qualified Graphics.X11.Xlib as X
 
 import System.Taffybar.Hooks.PagerHints (pagerHints)
-import System.Taffybar.XMonadLog (taffybarPP)
 import System.Exit
 
 import           NamedActions
@@ -105,12 +104,9 @@ startup = do
   spawn "init-host-specific" -- This script will run any host-specific startup commands
   spawn "xmodmap ~/.Xmodmap"
   spawnOnce "compton-start"
-  spawn "init-taffybars"
   spawn "xrandr --dpi 96x96"
-  spawn "backlight +0" -- Set backlight to the value in ~/.cache/backlight-setting
   spawn "check-dotfs"
-  --spawn "init-ssh-keys"
-  spawnOnce "dropbox-cli start"
+  spawn "init-taffybars"
   spawnOnce "net-login"
   spawnOnce "login-startup"
   spawnOnce "nm-applet"
