@@ -13,7 +13,7 @@ case "$HOSTNAME" in
 esac
 
 function notify {
-    update-notify.sh audio "$@"
+    dunstify -h string:x-dunst-stack-tag:switchaudio "$@"
 }
 
 function sink-list {
@@ -71,4 +71,4 @@ for i in ${inputs[*]}; do
     pacmd move-sink-input $i $swap &> /dev/null
 done
 
-notify "Audio Output Switched" "Switched audio device to ${names[$swap]}" --icon=speaker
+notify "Audio Output Switched" "Switched audio device to ${names[$swap]}" --icon=audio-speakers
