@@ -20,7 +20,6 @@ import           XMonad.Actions.CycleWS
 import           XMonad.Actions.OnScreen
 import           XMonad.Actions.PhysicalScreens
 import           XMonad.Actions.UpdatePointer
---import           XMonad.Actions.Volume
 import           XMonad.Actions.Submap
 
 import           XMonad.Layout                  hiding ((|||))
@@ -59,7 +58,7 @@ import           XMonad.Util.Scratchpad
 
 import qualified Graphics.X11.Xlib as X
 
-import System.Taffybar.Hooks.PagerHints (pagerHints)
+--import System.Taffybar.Hooks.PagerHints (pagerHints)
 import System.Exit
 
 import           NamedActions
@@ -75,7 +74,8 @@ main = do
 -- Apply some transformations to the config
 cfg = do
     keys <- myKeys
-    return $ addKeys keys $ ewmh $ pagerHints myBaseConfig
+    -- return $ addKeys keys $ ewmh $ pagerHints myBaseConfig
+    return $ addKeys keys $ ewmh myBaseConfig
   where
     addKeys keys c = addDescrKeys' ((modm, xK_F1), xMessage) (const keys) c
 
@@ -92,8 +92,8 @@ myBaseConfig = defaultConfig
     , startupHook = startup
     , handleEventHook = docksEventHook
     , borderWidth = 4
-    , normalBorderColor = "#3f3f3f"
-    , focusedBorderColor = "#6f6f6f"
+    , normalBorderColor = colorBg0
+    , focusedBorderColor = colorBg4
     , logHook = updatePointer (0.5, 0.5) (0.25, 0.25)
     }
 
@@ -117,20 +117,38 @@ myWorkspaces = ["1:Web", "2:Work", "3:IRC", "4", "5", "6", "7", "8", "9"]
 
 --------------- Theme ---------------
 
+colorBg0 = "#282828";
+colorBg1 = "#3c3836";
+colorBg2 = "#504945";
+colorBg3 = "#665c54";
+colorBg4 = "#7c6f64";
+colorFg4 = "#a89984";
+colorFg3 = "#bdae93";
+colorFg2 = "#d5c4a1";
+colorFg1 = "#ebdbb2";
+colorFg0 = "#fbf1c7";
+
+colorGreen = "#b8bb26";
+colorRed = "#fb4934";
+colorYellow = "#fabd2f";
+colorBlue = "#83a598";
+colorOrange = "#fe8019";
+colorPurple = "#d3869b";
+colorAqua = "#8ec07c";
+
 myFontName = "xft:Source Code Pro:pixelsize=14"
 
 myTheme = defaultTheme
-  { activeColor         = "#2f2f2f"
-  , inactiveColor       = "#1f1f1f"
-  , urgentColor         = "#ffff00"
-  , activeBorderColor   = "#3f3f3f"
-  , inactiveBorderColor = "#1f1f1f"
-  , urgentBorderColor   = "##00ff00"
-  , activeTextColor     = "#f0f0f0"
-  , inactiveTextColor   = "#f0f0f0"
-  , urgentTextColor     = "#fff0f0"
+  { activeColor         = colorBg2
+  , activeTextColor     = colorFg0
+  , activeBorderColor   = colorBg2
+  , inactiveColor       = colorBg0
+  , inactiveTextColor   = colorFg0
+  , inactiveBorderColor = colorBg0
+  , urgentColor         = colorRed
+  , urgentTextColor     = colorBg0
+  , urgentBorderColor   = colorRed
   , fontName            = myFontName
-  -- , fontName            = "-monospace-*-*-*-*-*-10-*-*-*-*-*-*-*"
   , decoWidth           = 200
   , decoHeight          = 20
   , windowTitleAddons   = []
@@ -149,8 +167,7 @@ themedXPConfig = defaultXPConfig
 
 --------------- Layout ---------------
 myLayout =
-  id
-  . layerWindows
+  layerWindows
   . avoidStruts
   . trackFloating
   . fullscreenFull
@@ -167,10 +184,20 @@ myLayout =
 
 lTabbed = noBorders $ tabbedAlways shrinkText myTheme
 lTabbedBot = noBorders $ tabbedBottom shrinkText myTheme
-lTall = spacing 8 $ Tall 1 (3/100) (1/2)
-mTall = Mirror lTall
 lFull = noBorders Full
-lGimp = combineTwoP (spacing 8 $ TwoPane 0.03 0.7) lTabbed lTabbed (Role "gimp-image-window")
+lGimp = combineTwoP (spaceLayout $ TwoPane 0.03 0.7) lTabbed lTabbed (Role "gimp-image-window")
+
+lTall :: ModifiedLayout Spacing Tall Window
+lTall = spaceLayout $ Tall 1 (3/100) (1/2)
+mTall = Mirror lTall
+
+
+spaceLayout :: LayoutClass l a => l a -> ModifiedLayout Spacing l a
+spaceLayout = spacingRaw True tallScreenBorder True tallWindowBorder True 
+screenBorderSize = 0
+tallScreenBorder = Border screenBorderSize screenBorderSize screenBorderSize screenBorderSize
+windowBorderSize = 16
+tallWindowBorder = Border windowBorderSize windowBorderSize windowBorderSize windowBorderSize
 
 
 jumpLayout :: LayoutClass l a => l a -> X ()
@@ -237,6 +264,7 @@ baseKeys =
   --     addName "prompt launch application" $ spawn ("j4-dmenu-desktop --dmenu='dmenu " ++ dmenuArgStr ++ "'"))
   --, ((modm              , xK_space), addName "run command" $ spawn ("dmenu_run " ++ dmenuArgStr))
   , ((modm              , xK_space), addName "run command" $ spawn "rofi -combi-modi window,run -show combi -modi combi")
+  , ((modm .|. shiftMask, xK_space), addName "run application" $ spawn "rofi -show drun -modi drun")
   , ((modm              , xK_grave), addName "scratchpad" $ scratchpadSpawnActionCustom "alacritty --class scratchpad -e bash --login")
   , ((modm              , xK_t), addName "tmux terminal" $ spawn "alacritty -e tmux")
   , ((modm .|. shiftMask, xK_t), addName "terminal" $ spawn "alacritty -e bash --login")
@@ -262,7 +290,6 @@ baseKeys =
   , ((modm, xK_q), submapMenu' "Restart/Quit Menu" quitKeys)
 
   , ((modm, xK_l), addName "lock screen" $ spawn "lock-screen")
-  , ((modm, xK_n), addName "clear notifications" $ spawn "killall xfce4-notifyd")
 
   , ((modm, xK_m), addName "mount external drive" mountMenu)
 
@@ -285,7 +312,7 @@ hostKeys "homebase" =
   , ((modm, xK_F4), addName "enable both monitors" $ spawn "mons -n both")
 
   -- WinVM attach/detach
-  , ((modm, xK_F5), addName "detach keyboard and mouse from WinVM" $ (spawn "vmctx lin" >> restart "xmonad" True))
+  , ((modm, xK_F5), addName "detach keyboard and mouse from WinVM" (spawn "vmctx lin" >> restart "xmonad" True))
   , ((modm, xK_F6), addName "attach keyboard and mouse to WinVM" $ spawn "vmctx win")
   ]
 hostKeys "nixpro" =
@@ -372,7 +399,7 @@ screenKeys :: [((KeyMask, KeySym), NamedAction)]
 screenKeys = focusKeys ++ swapKeys
   where
     focusKeys = zip (drop 2 $ asdfRow modm) (map viewScreen' [0, 1 :: Int])
-    viewScreen' s = addName ("focus screen" ++ show (s+1)) $ viewScreen $ P s
+    viewScreen' s = addName ("focus screen" ++ show (s+1)) $ viewScreen def $ P s
     swapKeys =
         [ ((modm .|. shiftMask, xK_d), addName "swap workspaces with next screen" swapNextScreen)
         , ((modm .|. shiftMask, xK_f), addName "swap workspaces with previus screen" swapPrevScreen)
@@ -439,7 +466,7 @@ mountMenu = do
 myManageHook = composeAll . concat $
   [ [ workspaceManageHook ]
 
-  , [ className =? "Xfce4-notifyd" --> manageTop ]
+  , [ title =? "Dunst" --> manageBot ]
   , [ title =? "livewallpaper" --> manageBot ]
 
   , [ (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat ]
@@ -465,7 +492,7 @@ myManageHook = composeAll . concat $
 -- Manage hooks for moving windows to their proper default workspaces.
 workspaceManageHook = composeOne
   -- Quassel goes in the IRC workspace.
-  [ (propContains "quassel" className) -?> doShift "3:IRC"
+  [ propContains "quassel" className -?> doShift "3:IRC"
 
     -- When running via X11-Forwarding from a machine in the CS labs at school,
     -- I want gnome-terminal to be on workspace 9.
@@ -540,5 +567,5 @@ quitPrompt = do
     responseM <- inputPrompt themedXPConfig "Please type \"quit\" and press enter to log out."
     case responseM of
         Just "quit" ->
-            io (exitWith ExitSuccess)
+            io exitSuccess
         _ -> return ()

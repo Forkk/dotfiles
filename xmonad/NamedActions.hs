@@ -1,4 +1,3 @@
--- Modified slightly from the original
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE ExistentialQuantification, FlexibleContexts, FlexibleInstances, StandaloneDeriving #-}
 --------------------------------------------------------------------
@@ -13,6 +12,9 @@
 --
 -- A wrapper for keybinding configuration that can list the available
 -- keybindings.
+--
+-- Note that xmonad>=0.11 has by default a list of the default keybindings
+-- bound to @M-S-/@ or @M-?@.
 --------------------------------------------------------------------
 
 module NamedActions (
@@ -38,7 +40,7 @@ module NamedActions (
     (^++^),
 
     NamedAction(..),
-    HasName(..),
+    HasName(getAction),
     defaultKeysDescr
     ) where
 
@@ -48,14 +50,11 @@ import XMonad
 import System.Posix.Process(executeFile)
 import Control.Arrow(Arrow((&&&), second, (***)))
 import Data.Bits(Bits((.&.), complement))
-import Data.List (groupBy)
 import System.Exit(ExitCode(ExitSuccess), exitWith)
-
-import Control.Applicative ((<*>))
+import Data.List (groupBy)
 
 import qualified Data.Map as M
 import qualified XMonad.StackSet as W
-
 
 -- $usage
 -- Here is an example config that demonstrates the usage of 'sendMessage'',
@@ -66,7 +65,7 @@ import qualified XMonad.StackSet as W
 -- > import XMonad.Util.EZConfig
 -- >
 -- > main = xmonad $ addDescrKeys ((mod4Mask, xK_F1), xMessage) myKeys
--- >                    defaultConfig { modMask = mod4Mask }
+-- >                    def { modMask = mod4Mask }
 -- >
 -- > myKeys c = (subtitle "Custom Keys":) $ mkNamedKeymap c $
 -- >    [("M-x a", addName "useless message" $ spawn "xmessage foo"),
@@ -120,6 +119,7 @@ spawn' :: String -> NamedAction
 spawn' x = addName x $ spawn x
 
 class HasName a where
+    {-# MINIMAL getAction #-}
     showName :: a -> [String]
     showName = const [""]
     getAction :: a -> X ()
@@ -189,8 +189,8 @@ smartSpace :: String -> String
 smartSpace [] = []
 smartSpace xs = ' ':xs
 
--- _test :: String
--- _test = unlines $ showKm $ defaultKeysDescr XMonad.defaultConfig { XMonad.layoutHook = XMonad.Layout $ XMonad.layoutHook XMonad.defaultConfig }
+_test :: String
+_test = unlines $ showKm $ defaultKeysDescr XMonad.def { XMonad.layoutHook = XMonad.Layout $ XMonad.layoutHook XMonad.def }
 
 showKm :: [((KeyMask, KeySym), NamedAction)] -> [String]
 showKm keybindings = padding $ do
@@ -226,7 +226,7 @@ addDescrKeys' (k,f) ks conf =
         keylist l = M.map getAction $ M.fromList $ ks l ^++^ [(k, shk l)]
     in conf { keys = keylist }
 
--- | A version of the default keys from 'XMonad.Config.defaultConfig', but with
+-- | A version of the default keys from the default configuration, but with
 -- 'NamedAction'  instead of @X ()@
 defaultKeysDescr :: XConfig Layout -> [((KeyMask, KeySym), NamedAction)]
 defaultKeysDescr conf@(XConfig {XMonad.modMask = modm}) =

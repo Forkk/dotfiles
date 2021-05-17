@@ -7,7 +7,6 @@ import System.Process
 import XMonad
 
 import XMonad.Util.Dzen hiding (font)
-
 import NamedActions
 
 -- | Like `submapName`, but also displays a list of the sub-options via dzen.
@@ -23,9 +22,6 @@ submapMenu name cfg keymap = addName name $ do
     helpStr = name ++ "\n" ++ unlines (map (" "++) $ showKm keymap)
     menuCfg = timeout 0.0 >=>
               addArgs ["-e", "onstart=uncollapse"]
-
--- quoteStr :: String -> String
--- quoteStr s = '"' : s ++ "\""
 
 
 procCfg :: FilePath -> [String] -> CreateProcess
