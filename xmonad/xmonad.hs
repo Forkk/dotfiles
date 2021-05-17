@@ -58,11 +58,11 @@ import           XMonad.Util.Scratchpad
 
 import qualified Graphics.X11.Xlib as X
 
---import System.Taffybar.Hooks.PagerHints (pagerHints)
 import System.Exit
 
 import           NamedActions
 import           SubmapMenu
+import           TaffyPagerHints (pagerHints)
 
 --------------- Config ---------------
 main = do
@@ -74,8 +74,7 @@ main = do
 -- Apply some transformations to the config
 cfg = do
     keys <- myKeys
-    -- return $ addKeys keys $ ewmh $ pagerHints myBaseConfig
-    return $ addKeys keys $ ewmh myBaseConfig
+    return $ addKeys keys $ ewmh $ pagerHints myBaseConfig
   where
     addKeys keys c = addDescrKeys' ((modm, xK_F1), xMessage) (const keys) c
 
