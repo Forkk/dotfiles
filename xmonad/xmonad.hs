@@ -174,12 +174,12 @@ myLayout =
   -- Full layout goes first in the Web workspace.
   . onWorkspace "1:Web" (lTabbedBot ||| lTabbed ||| lFull ||| lTall ||| mTall)
   -- On the Work workspace, we use the tabbed layout first.
-  . onWorkspace "2:Work" (lTabbed ||| lTall ||| mTall ||| lFull ||| lGimp)
+  . onWorkspace "2:Work" (lTabbed ||| lTabbedBot ||| lTall ||| mTall ||| lFull ||| lGimp)
   -- On the IRC workspace, we can use Tall, Mirror tall, tabbed, and full.
-  . onWorkspace "3:IRC" (lTall ||| mTall ||| lTabbed ||| lFull ||| lGimp)
+  . onWorkspace "3:IRC" (lTall ||| mTall ||| lTabbed||| lTabbedBot  ||| lFull ||| lGimp)
   -- Workspace 4 is sometimes used for games and videos, so I use the full layout first on there.
-  . onWorkspace "4" (lFull ||| lTabbed ||| lTall ||| mTall ||| lGimp)
-  $ (lTabbed ||| lTall ||| mTall ||| lFull ||| lGimp)
+  . onWorkspace "4" (lFull ||| lTabbed||| lTabbedBot  ||| lTall ||| mTall ||| lGimp)
+  $ (lTabbed ||| lTabbedBot ||| lTall ||| mTall ||| lFull ||| lGimp)
 
 
 lTabbed = noBorders $ tabbedAlways shrinkText myTheme
