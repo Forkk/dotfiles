@@ -64,8 +64,7 @@
 .network {
     padding-left: 8px;
     padding-right: 8px;
-    /* min-width: 180px; */
-    /* background-color: @yellow; */
+    color: @yellow;
 }
 
 .cpu {

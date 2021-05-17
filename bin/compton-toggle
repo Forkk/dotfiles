@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-NOTIF_ARGS=--icon=dialog-information
+NOTIF_ARGS='--icon=dialog-information --urgency=low'
 
 if killall picom; then
     update-notify.sh compositor "Compositor" "Compositing disabled" $NOTIF_ARGS
