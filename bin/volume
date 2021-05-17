@@ -103,6 +103,7 @@ for arg in "$@"; do
                 "$(volume_bar) $vol%" \
                 -i $(volume_icon $vol) \
                 --urgency=low \
+                --timeout 5000 \
                 -h string:x-dunst-stack-tag:volume
             ;;
         * )

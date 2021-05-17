@@ -5,10 +5,6 @@ set -e
 line_out=""
 line_out_name="Line Out"
 case "$HOSTNAME" in
-    homebase )
-        line_out="hdmi"
-        line_out_name="HDMI"
-        ;;
     * ) line_out="analog-stereo" ;;
 esac
 
