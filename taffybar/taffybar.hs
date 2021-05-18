@@ -142,8 +142,8 @@ diskIO "homebase" = packClassBox "io" [hddMainIO, hddD0IO, hddD1IO, hddAuxIO]
     hddAuxIO = dioMonitorNew (hddIOGraphCfg "aux") 0.5 "sde"
 diskIO "ultpro" = packClassBox "io" [hddRootIO, hddHomeIO]
   where
-    hddRootIO = dioMonitorNew (hddIOGraphCfg "main") 0.5 "sda"
-    hddHomeIO = dioMonitorNew (hddIOGraphCfg "home") 0.5 "sdb"
+    hddRootIO = dioMonitorNew (hddIOGraphCfg "root") 0.5 "sdb"
+    hddHomeIO = dioMonitorNew (hddIOGraphCfg "home") 0.5 "sda"
 diskIO _ = packClassBox "io" []
 
 cpuWidget hostname = packClassBox "cpu" [cpu, cpuTemp]
