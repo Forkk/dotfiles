@@ -29,6 +29,7 @@ import Text.Read
 import Text.Printf
 import Text.Parsec
 import Text.Parsec.String
+import Network.HostName
 
 colorGreen = "#b8bb26"
 fcolorGreen = (0.722, 0.733, 0.149, 1.0)
@@ -133,27 +134,36 @@ packClassBox cls mkContents = do
     return box
 
 
-diskIO = packClassBox "io" [hddMainIO, hddD0IO, hddD1IO, hddAuxIO]
+diskIO "homebase" = packClassBox "io" [hddMainIO, hddD0IO, hddD1IO, hddAuxIO]
   where
     hddMainIO = dioMonitorNew (hddIOGraphCfg "main") 0.5 "sdb"
     hddD0IO = dioMonitorNew (hddIOGraphCfg "data0") 0.5 "sdc"
     hddD1IO = dioMonitorNew (hddIOGraphCfg "data1") 0.5 "sdd"
     hddAuxIO = dioMonitorNew (hddIOGraphCfg "aux") 0.5 "sde"
+diskIO "ultpro" = packClassBox "io" [hddRootIO, hddHomeIO]
+  where
+    hddRootIO = dioMonitorNew (hddIOGraphCfg "main") 0.5 "sda"
+    hddHomeIO = dioMonitorNew (hddIOGraphCfg "home") 0.5 "sdb"
+diskIO _ = packClassBox "io" []
 
-cpuWidget = packClassBox "cpu" [cpu, cpuTemp]
+cpuWidget hostname = packClassBox "cpu" [cpu, cpuTemp]
   where
     cpu = cpuMonitorNew cpuGraphCfg 0.5 "cpu"
-    cpuTemp = tempMonitorNew Nothing (tempFileCbk "/sys/bus/platform/devices/coretemp.0/hwmon/hwmon0/temp1_input")
+    cpuTemp = tempMonitorNew Nothing (tempFileCbk $ sensorFile hostname)
+    sensorFile "homebase" = "/sys/bus/platform/devices/coretemp.0/hwmon/hwmon0/temp1_input"
+    sensorFile "ultpro" = "/sys/bus/platform/devices/coretemp.0/hwmon/hwmon1/temp1_input"
+    sensorFile _ = "/dev/null"
 
 gpuWidget = packClassBox "gpu" [gpuLabel, gpuTemp]
   where
     gpuLabel = liftIO (toWidget =<< labelNew (Just $ T.pack "gpu"))
     gpuTemp = tempMonitorNew (Just "gpu") tempGpuCbk
 
-clock = 
+clock =
     classBox "clock" =<< textClockNew Nothing "%a %b %_d %H:%M" 1
 
 main = do
+  hostname <- getHostName
   let workspaces = workspacesNew $ defaultWorkspacesConfig {
         maxIcons = Just 0
       }
@@ -162,9 +172,11 @@ main = do
       net = classBox "network" =<< networkMonitorNew defaultNetFormat Nothing
       -- FIXME: According to the name of this function, clearly this is the best way to do this.
       tray = sniTrayThatStartsWatcherEvenThoughThisIsABadWayToDoIt
+      maybeGPU = [gpuWidget | hostname == "homebase"]
   simpleTaffybar defaultSimpleTaffyConfig
        { startWidgets = [ workspaces ]
-       , endWidgets = reverse [ net, cpuWidget, mem, gpuWidget, diskIO, tray, clock ]
+       , endWidgets = reverse ([ net, cpuWidget hostname, mem ] ++ maybeGPU
+                            ++ [ diskIO hostname, tray, clock ])
        , barPosition = Bottom
        , barHeight = 24
        , widgetSpacing = 0
