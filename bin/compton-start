@@ -12,4 +12,4 @@ LOCAL="$CFGDIR/$HOSTNAME.conf"
 GEN="$HOME/.cache/picom.conf"
 
 cat $BASE $LOCAL > "$GEN"
-picom -b --config "$GEN" "$@"
+picom -b --experimental-backends --config "$GEN" "$@"
