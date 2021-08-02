@@ -59,15 +59,22 @@ else
     BG_ARGS='--blur=6'
 fi
 
+GREETER_POS="w/2:400"
+# HACK on homebase to move the greeter to the right monitor.
+if [ "$(hostname)" == "homebase" ] && xrandr | grep '1920x1080 *60\.00\*' >/dev/null; then
+    GREETER_POS="w*1.5:420"
+fi
+
+
 i3lock --nofork --centered $BG_ARGS \
-    --ignore-empty-password --radius="100" \
+    --ignore-empty-password --radius="120" \
     --veriftext="verifying" --wrongtext="denied" --noinputtext="no input" \
         --time-font="$FONT" --date-font="$FONT" --verif-font="$FONT" \
         --wrong-font="$FONT" \
         --timecolor="$COLOR_TEXT" --datecolor="$COLOR_TEXT" \
         --verifcolor="$COLOR_TEXT" \ --wrongcolor="$COLOR_TEXT" \
     --greetertext="welcome to $(hostname)" \
-        --greeterpos="w/2:400" \
+        --greeterpos="$GREETER_POS" \
         --greetercolor="${COLOR_AQUA}ff" \
         --greeter-font="$FONT" \
     --indicator \
@@ -81,7 +88,6 @@ i3lock --nofork --centered $BG_ARGS \
         --keyhlcolor="${COLOR_TYPING}ff" \
         --bshlcolor="${COLOR_BACKSPACE}ff" \
         --separator="00000000" \
-        --indpos="w/2:550" \
     --clock \
         --datestr="%A, %b %d, %Y"
 

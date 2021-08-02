@@ -12,4 +12,14 @@ LOCAL="$CFGDIR/$HOSTNAME.conf"
 GEN="$HOME/.cache/picom.conf"
 
 cat $BASE $LOCAL > "$GEN"
-picom -b --experimental-backends --config "$GEN" "$@"
+
+run() {
+    picom --experimental-backends --config "$GEN" "$@"
+    RESULT="$?"
+    if [ "$RESULT" != "0" ]; then
+        dunstify "Compositor Crashed" "The compositor exited with code $RESULT" --urgency=critical
+    fi
+}
+
+run &
+

@@ -10,8 +10,25 @@
             "args": ["--lsp"],
             "rootPatterns": ["*.cabal", "stack.yaml", "cabal.project", "package.yaml", "hie.yaml"],
             "filetypes": ["haskell", "lhaskell"]
+        },
+        "purescript": {
+            "command": "/home/forkk/.yarn/bin/purescript-language-server",
+            "args": ["--stdio"],
+            "filetypes": ["purescript"],
+            "trace.server": "off",
+            "rootPatterns": ["bower.json", "psc-package.json", "spago.dhall"],
+            "settings": {
+                "purescript": {
+                    "addSpagoSources": true,
+                    "addNpmPath": true
+                }
+            }
         }
     },
     "diagnostic.locationlistUpdate": true,
-    "rust-client.rustupPath": "/home/forkk/.cargo/bin/rustup"
+    "hover.floatMaxHeight": 420,
+    "diagnostic.maxWindowHeight": 420,
+    "signature.maxWindowHeight": 420,
+    "rust-client.rustupPath": "/home/forkk/.cargo/bin/rustup",
+    "rust-analyzer.server.path": "/home/forkk/bin/rust-analyzer"
 }

@@ -15,7 +15,6 @@ executable taffybar
                      , process
                      , filepath
                      , parsec
-                     , gtk3
                      , gi-gtk
                      , taffybar
                      , text

@@ -19,6 +19,7 @@ Plug 'kana/vim-submode'
 Plug 'raimondi/delimitmate'
 Plug 'simnalamburt/vim-mundo'
 Plug 'liuchengxu/vim-which-key'
+Plug 'luochen1990/rainbow'
 
 " Code Completion
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -26,7 +27,8 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " c/c++
 Plug 'Maxattax97/coc-ccls', {'do': 'yarn install --frozen-lockfile'}
 " rust
-Plug 'neoclide/coc-rls', {'do': 'yarn install --frozen-lockfile'}
+" Plug 'neoclide/coc-rls', {'do': 'yarn install --frozen-lockfile'}
+Plug 'fannheyward/coc-rust-analyzer', {'do': 'yarn install --frozen-lockfile'}
 Plug 'neoclide/coc-tsserver', {'do': 'yarn install --frozen-lockfile'}
 " python
 Plug 'fannheyward/coc-pyright', {'do': 'yarn install --frozen-lockfile'}
@@ -38,6 +40,8 @@ Plug 'josa42/coc-sh', {'do': 'yarn install --frozen-lockfile'}
 Plug 'neoclide/coc-html', {'do': 'yarn install --frozen-lockfile'}
 Plug 'neoclide/coc-css', {'do': 'yarn install --frozen-lockfile'}
 Plug 'neoclide/coc-json', {'do': 'yarn install --frozen-lockfile'}
+
+Plug 'neoclide/coc-snippets', {'do': 'yarn install --frozen-lockfile'}
 
 
 " Git
@@ -52,6 +56,9 @@ Plug 'nvim-telescope/telescope.nvim'
 
 " Languages
 Plug 'habamax/vim-godot'
+Plug 'neovimhaskell/haskell-vim'
+Plug 'purescript-contrib/purescript-vim'
+Plug 'vmchale/dhall-vim'
 
 " Colors
 Plug 'morhetz/gruvbox'
@@ -196,6 +203,16 @@ nnoremap <leader>gl :tab Git log<cr>
 nnoremap <leader>gb :Twiggy<cr>
 nnoremap <leader>gu :GitGutterToggle<cr>
 nnoremap <leader>gU :GitGutterBufferToggle<cr>
+
+let g:which_key_map.q = { 'name' : '+session',
+            \ 'q': 'save to .session.vim, and quit', 
+            \ 'Q': "quit. don't save session", 
+            \ 's': 'save to .session.vim' }
+nnoremap <leader>qq :mks! .session.vim<cr>:qa<cr>
+nnoremap <leader>qQ :mks! :qa<cr>
+nnoremap <leader>qs :mks! .session.vim<cr>
+
+nnoremap <leader>rR :CocRestart<cr>
 
 " This folds all children of the current fold
 nnoremap zs zcV:foldclose!<cr>zo
@@ -410,6 +427,29 @@ xmap <leader>x  <Plug>(coc-convert-snippet)
 
 " Godot {{{
 let g:godot_executable = '/home/forkk/bin/godot'
+" }}}
+
+" Rainbow Parentheses {{{
+
+let g:rainbow_active = 1
+let g:rainbow_conf = {
+\   'guifgs': ['#fb4934', '#8ec07c', '#fe8019', '#d3869b', '#b8bb26', '#83a598'],
+\   'ctermfgs': g:rainbow_ctermfgs,
+\   'guis': [''],
+\   'cterms': [''],
+\   'operators': '_,_',
+\   'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
+\   'separately': {
+\       '*': {},
+\       'markdown': {
+\           'parentheses_options': 'containedin=markdownCode contained',
+\       },
+\       'haskell': {
+\           'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/\v\{\ze[^-]/ end=/}/ fold'],
+\       },
+\   }
+\}
+
 " }}}
 
 " }}}

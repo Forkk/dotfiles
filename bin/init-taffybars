@@ -6,4 +6,5 @@ TAFFYBAR="/home/forkk/.cabal/bin/taffybar"
 
 killall taffybar || :
 $(taffybar) &
+nm-applet --indicator &
 

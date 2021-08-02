@@ -92,7 +92,7 @@ myBaseConfig = defaultConfig
     , handleEventHook = docksEventHook
     , borderWidth = 4
     , normalBorderColor = colorBg0
-    , focusedBorderColor = colorBg4
+    , focusedBorderColor = colorBg2
     , logHook = updatePointer (0.5, 0.5) (0.25, 0.25)
     }
 
@@ -108,7 +108,7 @@ startup = do
   spawn "init-taffybars"
   spawnOnce "net-login"
   spawnOnce "login-startup"
-  spawnOnce "nm-applet"
+  spawnOnce "nm-applet --indicator"
 
 --------------- Workspaces ---------------
 myWorkspaces = ["1:Web", "2:Work", "3:IRC", "4", "5", "6", "7", "8", "9"]
@@ -337,6 +337,7 @@ appMenu =
   , ((0, xK_q), "quasselclient")
   , ((0, xK_s), "steam")
   , ((0, xK_d), "deluge")
+  , ((0, xK_y), "yubioath")
   , ((0, xK_i), "google-chrome-stable --app=https://discord.com/app")
   , ((0, xK_a), "google-chrome-stable --app=https://app.element.io")
   , ((0, xK_m), "google-chrome-stable --app=https://music.youtube.com")
