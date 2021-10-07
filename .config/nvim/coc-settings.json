@@ -12,9 +12,9 @@
             "filetypes": ["haskell", "lhaskell"]
         },
         "purescript": {
-            "command": "/home/forkk/.yarn/bin/purescript-language-server",
+            "command": "purescript-language-server",
             "args": ["--stdio"],
-            "filetypes": ["purescript"],
+            "filetypes": ["purescript", "purs"],
             "trace.server": "off",
             "rootPatterns": ["bower.json", "psc-package.json", "spago.dhall"],
             "settings": {
@@ -29,6 +29,5 @@
     "hover.floatMaxHeight": 420,
     "diagnostic.maxWindowHeight": 420,
     "signature.maxWindowHeight": 420,
-    "rust-client.rustupPath": "/home/forkk/.cargo/bin/rustup",
-    "rust-analyzer.server.path": "/home/forkk/bin/rust-analyzer"
+    "rust-analyzer.server.path": "/run/current-system/sw/bin/rust-analyzer"
 }

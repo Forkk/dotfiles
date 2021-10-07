@@ -59,6 +59,7 @@ Plug 'habamax/vim-godot'
 Plug 'neovimhaskell/haskell-vim'
 Plug 'purescript-contrib/purescript-vim'
 Plug 'vmchale/dhall-vim'
+Plug 'LnL7/vim-nix'
 
 " Colors
 Plug 'morhetz/gruvbox'

@@ -110,7 +110,7 @@
     max_icon_size = 32
 
     # Paths to default icons.
-    icon_path = /usr/share/icons/Numix/32/status/:/usr/share/icons/Numix/32/devices/:/usr/share/icons/breeze-dark/status/24/
+    icon_path = /run/current-system/sw/share/icons/Adwaita/32x32/status/:/run/current-system/sw/share/icons/Adwaita/32x32/devices/:/run/current-system/sw/share/icons/Adwaita/32x32/legacy/
 
     ### History ###
 

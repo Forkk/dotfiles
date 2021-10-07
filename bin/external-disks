@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-set -euf -o pipefail
-
-EXCLUDEFILE=~/.config/extdisk-exclude
-
-lsblk -lnp -o NAME | \
-    grep '/dev/[a-zA-Z]*[0-9]' | \
-    grep --invert -f "$EXCLUDEFILE"
