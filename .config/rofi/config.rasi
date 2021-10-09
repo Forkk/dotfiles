@@ -1,3 +1,4 @@
 configuration {
-    theme: "gruvbox-dark";
+    theme: ".config/rofi/ribbon_top";
+    modi: "window,drun,run,combi";
 } 

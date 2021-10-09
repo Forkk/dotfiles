@@ -1,0 +1,15 @@
+* {
+  al:  #00000000;
+  bg:  #282828ff;
+  se:  #3c3836ff;
+  fg:  #FFFFFFff;
+  ac:  #98971aff;
+
+  background:                     #28282820;
+  background-alt:                 #50494520;
+  foreground:                     #ffffffaa;
+  border:                         #98971aa0;
+  border-alt:                     #b8bb26a0;
+  selected:               	      #665c5499;
+  urgent:                         #fb4934ff;
+}
