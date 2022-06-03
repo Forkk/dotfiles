@@ -1,4 +1,4 @@
 configuration {
-    theme: ".config/rofi/ribbon_top";
     modi: "window,drun,run,combi";
 } 
+@theme "ribbon_top"
