@@ -15,7 +15,7 @@
             "command": "purescript-language-server",
             "args": ["--stdio"],
             "filetypes": ["purescript", "purs"],
-            "trace.server": "off",
+            "trace.server": "verbose",
             "rootPatterns": ["bower.json", "psc-package.json", "spago.dhall"],
             "settings": {
                 "purescript": {
@@ -23,6 +23,12 @@
                     "addNpmPath": true
                 }
             }
+        },
+        "nix": {
+            "command": "rnix-lsp",
+            "filetypes": [
+                "nix"
+            ]
         }
     },
     "diagnostic.locationlistUpdate": true,

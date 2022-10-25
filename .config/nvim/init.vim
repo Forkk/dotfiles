@@ -1,71 +1,84 @@
 " vim: set foldmethod=marker:
 
+let g:run_nostream_default=1
+
 syntax on
 
 """" Plugins {{{
+" Set to 1 to use local `.vim/plugged` dir instead of nix-managed plugins
+let localplugins=0
 
-" Specify a directory for plugins
-" - For Neovim: ~/.local/share/nvim/plugged
-" - Avoid using standard Vim directory names like 'plugin'
-call plug#begin('~/.vim/plugged')
+if localplugins
+    " Specify a directory for plugins
+    " - For Neovim: ~/.local/share/nvim/plugged
+    " - Avoid using standard Vim directory names like 'plugin'
+    call plug#begin('~/.vim/plugged')
 
-" Convenience
+    " Convenience
 
-Plug 'tpope/vim-surround'
-Plug 'tpope/vim-eunuch'
-Plug 'tpope/vim-commentary'
-Plug 'tpope/vim-repeat'
-Plug 'kana/vim-submode'
-Plug 'raimondi/delimitmate'
-Plug 'simnalamburt/vim-mundo'
-Plug 'liuchengxu/vim-which-key'
-Plug 'luochen1990/rainbow'
+    Plug 'tpope/vim-surround'
+    Plug 'tpope/vim-eunuch'
+    Plug 'tpope/vim-commentary'
+    Plug 'tpope/vim-repeat'
+    Plug 'kana/vim-submode'
+    Plug 'raimondi/delimitmate'
+    Plug 'simnalamburt/vim-mundo'
+    Plug 'liuchengxu/vim-which-key'
+    Plug 'luochen1990/rainbow'
 
-" Code Completion
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+    " Code Completion
+    Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
-" c/c++
-Plug 'Maxattax97/coc-ccls', {'do': 'yarn install --frozen-lockfile'}
-" rust
-" Plug 'neoclide/coc-rls', {'do': 'yarn install --frozen-lockfile'}
-Plug 'fannheyward/coc-rust-analyzer', {'do': 'yarn install --frozen-lockfile'}
-Plug 'neoclide/coc-tsserver', {'do': 'yarn install --frozen-lockfile'}
-" python
-Plug 'fannheyward/coc-pyright', {'do': 'yarn install --frozen-lockfile'}
-" ruby
-Plug 'neoclide/coc-solargraph', {'do': 'yarn install --frozen-lockfile'}
-" bash/sh
-Plug 'josa42/coc-sh', {'do': 'yarn install --frozen-lockfile'}
+    " c/c++
+    "Plug 'Maxattax97/coc-ccls', {'do': 'yarn install --frozen-lockfile'}
+    Plug 'clangd/coc-clangd'
+    " rust
+    " Plug 'neoclide/coc-rls', {'do': 'yarn install --frozen-lockfile'}
+    Plug 'fannheyward/coc-rust-analyzer', {'do': 'yarn install --frozen-lockfile'}
+    Plug 'neoclide/coc-tsserver', {'do': 'yarn install --frozen-lockfile'}
+    " python
+    Plug 'fannheyward/coc-pyright', {'do': 'yarn install --frozen-lockfile'}
+    " ruby
+    Plug 'neoclide/coc-solargraph', {'do': 'yarn install --frozen-lockfile'}
+    " bash/sh
+    Plug 'josa42/coc-sh', {'do': 'yarn install --frozen-lockfile'}
 
-Plug 'neoclide/coc-html', {'do': 'yarn install --frozen-lockfile'}
-Plug 'neoclide/coc-css', {'do': 'yarn install --frozen-lockfile'}
-Plug 'neoclide/coc-json', {'do': 'yarn install --frozen-lockfile'}
+    Plug 'neoclide/coc-html', {'do': 'yarn install --frozen-lockfile'}
+    Plug 'neoclide/coc-css', {'do': 'yarn install --frozen-lockfile'}
+    Plug 'neoclide/coc-json', {'do': 'yarn install --frozen-lockfile'}
 
-Plug 'neoclide/coc-snippets', {'do': 'yarn install --frozen-lockfile'}
+    Plug 'neoclide/coc-snippets', {'do': 'yarn install --frozen-lockfile'}
 
 
-" Git
-Plug 'tpope/vim-fugitive'
-Plug 'sodapopcan/vim-twiggy'
-Plug 'airblade/vim-gitgutter'
+    " Git
+    Plug 'tpope/vim-fugitive'
+    Plug 'sodapopcan/vim-twiggy'
+    Plug 'airblade/vim-gitgutter'
 
-" Telescope
-Plug 'nvim-lua/popup.nvim'
-Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim'
+    " Telescope
+    Plug 'nvim-lua/popup.nvim'
+    Plug 'nvim-lua/plenary.nvim'
+    Plug 'nvim-telescope/telescope.nvim'
 
-" Languages
-Plug 'habamax/vim-godot'
-Plug 'neovimhaskell/haskell-vim'
-Plug 'purescript-contrib/purescript-vim'
-Plug 'vmchale/dhall-vim'
-Plug 'LnL7/vim-nix'
+    " Languages
+    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} 
 
-" Colors
-Plug 'morhetz/gruvbox'
+    Plug 'habamax/vim-godot'
+    Plug 'neovimhaskell/haskell-vim'
+    Plug 'purescript-contrib/purescript-vim'
+    Plug 'vmchale/dhall-vim'
+    Plug 'LnL7/vim-nix'
 
-call plug#end()
+    " Tests
+    " Plug 'tpope/vim-dispatch'
+    " Plug 'vim-test/vim-test'
+    " Plug 'ledesmablt/vim-run'
 
+    " Colors
+    Plug 'morhetz/gruvbox'
+
+    call plug#end()
+endif
 " }}}
 
 """" Basic settings {{{
@@ -133,20 +146,20 @@ nnoremap <leader>nr :call RelNumberToggle()<cr>
 let g:which_key_map = {}
 
 let g:which_key_map.w = { 'name' : '+windows',
-            \ 's': 'horizontal split', 'v': 'vertical split',
-            \ 'c': 'close window',
-            \ '<': 'resize horizontal', '>': 'resize horizontal' }
+        \ 's': 'horizontal split', 'v': 'vertical split',
+        \ 'c': 'close window',
+        \ '<': 'resize horizontal', '>': 'resize horizontal' }
 nnoremap <leader>w <C-w>
 
 nnoremap <leader>sc :nohl<cr>
 nnoremap <leader>so :syntax on<cr>
 
 let g:which_key_map.f = { 'name' : '+files',
-            \ 'f': 'find git-tracked file', 'F': 'find file', 'b': 'browse files',
-            \ 'o': 'find previous file', 'g': 'grep files',
-            \ 'r': 'rename current file', 'd': 'delete current file', 'D': 'delete current file and buffer',
-            \ 's': 'save', 'S': 'sudo save'
-            \ }
+        \ 'f': 'find git-tracked file', 'F': 'find file', 'b': 'browse files',
+        \ 'o': 'find previous file', 'g': 'grep files',
+        \ 'r': 'rename current file', 'd': 'delete current file', 'D': 'delete current file and buffer',
+        \ 's': 'save', 'S': 'sudo save'
+        \ }
 nnoremap <leader>ff :Telescope git_files<cr>
 nnoremap <leader>fF :Telescope find_files<cr>
 nnoremap <leader>fb :Telescope file_browser<cr>
@@ -159,32 +172,47 @@ nnoremap <leader>fs :w<cr>
 nnoremap <leader>fS :SudoWrite<cr>
 
 let g:which_key_map.f.e = { 'name': '+config',
-            \ 'd': 'edit init.vim', 'r': 'reload init.vim',
-            \ 'c': 'edit CoC config' }
-nnoremap <leader>fed :e $MYVIMRC<cr>
-nnoremap <leader>fer :source $MYVIMRC<cr>
+        \ 'd': 'edit init.vim', 'r': 'reload init.vim',
+        \ 'c': 'edit CoC config' }
+nnoremap <leader>fed :e /home/forkk/.config/nvim/init.vim<cr>
+nnoremap <leader>fer :source /home/forkk/.config/nvim/init.vim<cr>
 nnoremap <leader>fec :e /home/forkk/.config/nvim/coc-settings.json<cr>
 
 let g:which_key_map.b = { 'name' : '+buffers', 'b': 'find open buffer' }
 nnoremap <leader>bb :Telescope buffers<cr>
 
 let g:which_key_map.t = { 'name': '+tabs',
-            \ 't': 'new tab', 'q': 'close tab', 'n': 'next tab', 'p': 'previous tab' }
+        \ 't': 'new tab', 'q': 'close tab', 'n': 'next tab', 'p': 'previous tab' }
 nnoremap <leader>tt :tabnew<cr>
 nnoremap <leader>tq :tabclose<cr>
 nnoremap <leader>tn :tabnext<cr>
 nnoremap <leader>tp :tabprev<cr>
 
 let g:which_key_map.e = { 'name' : '+errors',
-            \ 'l': 'show error list', 'c': 'hide error list',
-            \ 'n': 'next error', 'p': 'prev error',
-            \ 'r': 'restart CoC' }
+        \ 'l': 'show error list', 'c': 'hide error list',
+        \ 'n': 'next error', 'p': 'prev error',
+        \ 'r': 'restart CoC' }
 nnoremap <leader>ee :CocRebuild<cr>
 nnoremap <leader>ec :lclose<cr>
 nnoremap <leader>el :CocDiagnostics<cr>
 nnoremap <leader>en :lnext<cr>
 nnoremap <leader>ep :lprev<cr>
 nnoremap <leader>er :CocRestart<cr>
+
+let g:which_key_map.c = { 'name' : '+tests',
+        \ 'c': 'run test suite in background',
+        \ 'd': 'test current file',
+        \ 'C': 'run test suite in quickfix window',
+        \ 'q': 'close quickfix window',
+        \ 'r': 're-run last :Run command',
+        \ 'l': 'run last test' }
+nmap <silent> <leader>cc :Dispatch!<CR>
+nmap <silent> <leader>cd :TestFile<CR>
+nmap <silent> <leader>cC :Dispatch<CR>
+nmap <silent> <leader>cl :TestLast<CR>
+nmap <silent> <leader>cg :TestVisit<CR>
+nmap <silent> <leader>cq :cclose<CR>
+nmap <silent> <leader>cr :RunAgain<CR>
 
 let g:which_key_map.s = { 'name' : '+snippets', 'e': 'edit snippets' }
 nnoremap <leader>se :CocCommand snippets.editSnippets<cr>
@@ -193,9 +221,9 @@ let g:which_key_map.u = { 'name' : '+undo', 'u': 'toggle undo tree' }
 nnoremap <leader>uu :MundoToggle<cr>
 
 let g:which_key_map.g = { 'name' : '+git',
-            \ 'g': 'fugitive UI in new tab', 'G': 'fugitive UI in split',
-            \ 's': 'git status', 'd': 'git diff', 'l': 'git log',
-            \ 'b': 'browse branches', 'u': 'toggle gitgutter' }
+        \ 'g': 'fugitive UI in new tab', 'G': 'fugitive UI in split',
+        \ 's': 'git status', 'd': 'git diff', 'l': 'git log',
+        \ 'b': 'browse branches', 'u': 'toggle gitgutter' }
 nnoremap <leader>gg :tab Git<cr>
 nnoremap <leader>gG :Git<cr>
 nnoremap <leader>gs :Git --paginate status<cr>
@@ -206,9 +234,9 @@ nnoremap <leader>gu :GitGutterToggle<cr>
 nnoremap <leader>gU :GitGutterBufferToggle<cr>
 
 let g:which_key_map.q = { 'name' : '+session',
-            \ 'q': 'save to .session.vim, and quit', 
-            \ 'Q': "quit. don't save session", 
-            \ 's': 'save to .session.vim' }
+        \ 'q': 'save to .session.vim, and quit', 
+        \ 'Q': "quit. don't save session", 
+        \ 's': 'save to .session.vim' }
 nnoremap <leader>qq :mks! .session.vim<cr>:qa<cr>
 nnoremap <leader>qQ :mks! :qa<cr>
 nnoremap <leader>qs :mks! .session.vim<cr>
@@ -224,35 +252,35 @@ call which_key#register('<Space>', "g:which_key_map")
 
 " Status line {{{
 function! IsFileChanged()
-    let [a,m,r] = GitGutterGetHunkSummary()
-    return a > 0 || m > 0 || r > 0
+let [a,m,r] = GitGutterGetHunkSummary()
+return a > 0 || m > 0 || r > 0
 endfunction
 
 function! GitChanges()
-    let [a,m,r] = GitGutterGetHunkSummary()
-    let changes = a > 0 || m > 0 || r > 0
-    if changes
-        return printf('+%d ~%d -%d', a, m, r)
-    else
-        return ''
-    endif
+let [a,m,r] = GitGutterGetHunkSummary()
+let changes = a > 0 || m > 0 || r > 0
+if changes
+    return printf('+%d ~%d -%d', a, m, r)
+else
+    return ''
+endif
 endfunction
 
 function! GitSummary()
-    let gitsum=""
-    let githead=FugitiveHead()
-    let gitchanges = GitChanges()
-    if githead != ""
-        let gitsum=githead
-    endif
-    if gitchanges != ""
-        let gitsum=printf('%s %s', gitsum, gitchanges)
-    endif
-    if gitsum == ""
-        return ""
-    else
-        return printf('  %s ', gitsum)
-    endif
+let gitsum=""
+let githead=FugitiveHead()
+let gitchanges = GitChanges()
+if githead != ""
+    let gitsum=githead
+endif
+if gitchanges != ""
+    let gitsum=printf('%s %s', gitsum, gitchanges)
+endif
+if gitsum == ""
+    return ""
+else
+    return printf('  %s ', gitsum)
+endif
 endfunction
 
 set statusline=
@@ -270,11 +298,41 @@ set statusline+=\ %f\ %h%w%m%r
 set statusline+=\ %{coc#status()}%{get(b:,'coc_current_function','')}
 set statusline+=%=
 set statusline+=\ (%l,%c%V)\ 
+
 " }}}
 
 " }}}
 
 """" Plugin Settings {{{
+
+""" {{{ Tree-sitter
+
+lua <<EOF
+require'nvim-treesitter.configs'.setup {
+    highlight = {
+        enable = true,
+        disable = { },
+        additional_vim_regex_highlighting = false,
+    },
+    indent = {
+        enable = true
+    },
+    incremental_selection = {
+        enable = true,
+        keymaps = {
+            init_selection = "<CR>",
+            node_incremental = "<CR>",
+            scope_incremental = "<TAB>",
+            node_decremental = "<S-TAB>",
+        },
+    },
+}
+EOF
+set foldmethod=expr
+set foldlevel=99
+set foldexpr=nvim_treesitter#foldexpr()
+
+""" }}}
 
 "" Configure CoC {{{
 
@@ -406,6 +464,13 @@ xmap <leader>x  <Plug>(coc-convert-snippet)
 
 "" }}}
 
+" {{{ Test settings
+
+let test#strategy = 'dispatch'
+autocmd FileType python let b:dispatch = 'pytest'
+
+" }}}
+
 " Neomake settings (disabled) {{{
 
 "call neomake#configure#automake('w')
@@ -454,6 +519,9 @@ let g:rainbow_conf = {
 " }}}
 
 " }}}
+
+
+au BufRead,BufNewFile *.vcbl set filetype=vcbl
 
 syntax on
 
